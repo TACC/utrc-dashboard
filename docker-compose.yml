@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  full:
+    build:
+      dockerfile: Dockerfile.full
+      network: host
+    ports:
+      - "8050:8050"
+  lite:
+    build:
+      dockerfile: Dockerfile.lite
+      network: host
+    ports:
+      - "8051:8051"

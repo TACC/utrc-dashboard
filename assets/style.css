@@ -1,0 +1,214 @@
+/* MAIN DOCUMENT */
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+* {
+    font-family: Roboto,sans-serif;
+}
+
+.body {
+    padding: 0.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* HEADER */
+#header2 {
+    background-color: #222222;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
+    height: 55px;
+    border-bottom: 1px solid #afafaf;
+    padding-left: 30px;
+    gap: 3rem;
+    font-size: 1.5rem;
+}
+
+#header2>a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+#header2>a:hover {
+    transform: scale(1.1);
+    color: #ffffff;
+}
+
+.utrc-logo {
+    height: 44px;
+}
+
+.utrc-logo:hover {
+    transform: scale(1);
+}
+
+/* ==================SPECIFIC BODY COMPONENTS================== */
+/* Filters */
+#filters {
+    padding: 12px;
+    border: 1px solid #222222;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #ffffff;
+    background-color: #222222;
+    font-size: 1.25rem;
+    border: 1px solid #222222;
+    border-radius: 8px;
+}
+
+.filter_div {
+    border: 1px solid #222222;
+    padding: 0.75rem;
+    background-color: #ffffff;
+    color: #222222;
+    font-size: 1rem;
+}
+
+/* Tooltip container */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    height: 1rem;
+    width: 1rem;
+    border: 1px solid black;
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: .9rem;
+    background-color: #222222;
+    color: #fff;
+  }
+  
+  /* Tooltip text */
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 600px;
+    background-color: #222222;
+    font-size: 1rem;
+    color: #fff;
+    text-align: left;
+    padding: 5px;
+    padding-left: 20px;
+    border-radius: 8px;
+   
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+  }
+  
+  /* Show the tooltip text when you mouse over the tooltip container */
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }
+  
+  .tooptip p:after{
+      width:100%;
+      height:auto;
+      content:'';
+      position: absolute;
+      top:-40px;
+      left:0;
+  }
+  
+  .single_line_checklist {
+      display: flex;
+      flex-direction: row;
+      gap: 15px;
+  }
+  
+  .select-all {
+      font-weight: 700;
+  }
+
+#select_institutions_checklist,
+#select_machine_checklist,
+#year_radio_dcc {
+    display: flex;
+    gap: 1rem;
+}
+
+/* DataTable */
+#table {
+    width: auto;
+    border: 1px solid #222222;
+}
+
+.cell-table {
+    background-color: #222222;
+}
+.column-header-name {
+    background-color: #222222;
+    padding: 10px;
+    color: #FFFFFF;
+}
+
+.dash-cell {
+    min-width: 175px;
+}
+
+th.dash-header.column-0 {
+    border: none;
+    margin: 0;
+    background-color: #222222;
+}
+
+/* Histogram */
+#bargraph {
+    border: 1px solid #222222;
+}
+
+/* Total Counters */
+#total_counters_wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 50%;
+    background-color: #222222;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    margin-left: 25%;
+}
+
+.total_counters {
+    height: 8rem;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-size: 1.5rem;
+    color: #ffffff;
+}
+
+.counter_title {
+    font-size: 1.75rem;
+    color: gainsboro;
+    border-bottom: 1px solid #ffffff;
+}
+
+button {
+    background-color: #888888;
+    color: #ffffff;
+    height: 2.25rem;
+    font-size: 1.1rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid #757575;
+    margin-right: auto;
+    box-shadow: 3px 3px 10px #888888;
+}
+
+button:hover {
+    background-color: black;
+    transform: scale(1.02);
+}
