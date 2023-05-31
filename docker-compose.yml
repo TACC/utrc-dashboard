@@ -12,3 +12,4 @@ services:
       network: host
     ports:
       - "8051:8051"
+
