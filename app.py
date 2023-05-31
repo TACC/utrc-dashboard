@@ -95,12 +95,12 @@ app.layout = html.Div([
                     options=[
                         {'label': 'Lonestar6', 'value': 'Lonestar6'},
                         {'label': 'Frontera', 'value': 'Frontera'},
-                        {'label': 'Longhorn3', 'value': 'Longhorn3'},
-                        {'label': 'Stampede4', 'value': 'Stampede4'},
-			            {'label': 'Lonestar5', 'value': 'Lonestar5'},
-				        {'label': 'Maverick3', 'value': 'Maverick3'},
-                        {'label': 'Jetstream', 'value': 'Jetstream'},
-			            {'label': 'Hikari', 'value': 'Hikari'}
+                        {'label': 'Longhorn', 'value': 'Longhorn3'},
+                        {'label': 'Stampede2', 'value': 'Stampede4'},
+			{'label': 'Lonestar5', 'value': 'Lonestar5'},
+			{'label': 'Maverick2', 'value': 'Maverick3'},
+                        {'label': 'Jetstream1', 'value': 'Jetstream'},
+			{'label': 'Hikari', 'value': 'Hikari'}
                     ],
                     value=['Lonestar6', 'Frontera', 'Longhorn3', 'Stampede4', 'Lonestar5', 'Maverick3', 'Jetstream', 'Hikari'],
                     persistence=True,
