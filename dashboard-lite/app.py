@@ -92,7 +92,7 @@ app.layout = html.Div([
                         {'label': 'Stampede2', 'value': 'Stampede4'},
 			{'label': 'Lonestar5', 'value': 'Lonestar5'},
 			{'label': 'Maverick2', 'value': 'Maverick3'},
-                        {'label': 'Jetstream', 'value': 'Jetstream'},
+                        {'label': 'Jetstream1', 'value': 'Jetstream'},
 			{'label': 'Hikari', 'value': 'Hikari'}
                     ],
                     value=['Lonestar6', 'Frontera', 'Longhorn3', 'Stampede4', 'Lonestar5', 'Maverick3', 'Jetstream', 'Hikari'],
