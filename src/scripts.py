@@ -4,6 +4,7 @@ from os import walk
 import re
 from datetime import datetime
 from fuzzywuzzy import fuzz
+import copy
 
 logging.basicConfig(level=logging.INFO)
 
@@ -253,6 +254,16 @@ def get_fiscal_year_dates(fiscal_year):
     return dates
 
 
+def get_all_months():
+    options = create_fy_options()
+    marks = []
+    for fy in options:
+        newmarks = get_marks(fy)
+        marks_list = [x for x in newmarks.values()]
+        marks.extend(marks_list)
+    return marks
+
+
 def get_workbook_paths(directory):
     f = []
     for dirpath, _, filenames in walk(directory):
@@ -261,6 +272,19 @@ def get_workbook_paths(directory):
                 f.append(dirpath + "/" + filename)
         break
     return f
+
+
+def get_date_list(start, end):
+    all_months = get_all_months()
+    if start is None:
+        start_idx = 0
+    else:
+        start_idx = all_months.index(start)
+    if end is None:
+        return all_months[start_idx:]
+    else:
+        end_idx = all_months.index(end)
+        return all_months[start_idx : end_idx + 1]
 
 
 def append_date_to_worksheets(workbook, filename):
@@ -339,12 +363,11 @@ def remove_duplicates(df):
         pass  # Some worksheets do not have a login column
 
 
-def filter_df(df, institutions, date_range, fiscal_year, machines):
+def filter_df(df, institutions, date_range, machines):
     filtered_df = df[df["Institution"].isin(institutions)]
     filtered_df = filter_by_machine(filtered_df, machines)
-    filtered_df = filtered_df[
-        filtered_df["Date"].isin(get_dates_from_range(date_range, fiscal_year))
-    ]
+    # get_dates_from_range
+    filtered_df = filtered_df[filtered_df["Date"].isin(date_range)]
 
     filtered_df.sort_values(["Date", "Institution"], inplace=True)
     filtered_df = sort_columns(filtered_df)
@@ -352,12 +375,12 @@ def filter_df(df, institutions, date_range, fiscal_year, machines):
     return filtered_df
 
 
-def select_df(
-    DATAFRAMES, dropdown_selection, institutions, date_range, fiscal_year, machines
-):
+def select_df(DATAFRAMES, dropdown_selection, institutions, date_range, machines):
     """Given a list of filter inputs, returns a filtered dataframe. Removes
     sensitive data if iframed into public view."""
+    # print(dropdown_selection)
     df = DATAFRAMES[dropdown_selection]
+    # print(df)
 
     # if iframed==True:
     #     for column in PROTECTED_COLUMNS:
@@ -366,7 +389,7 @@ def select_df(
     #         except: # Throws error if column name isn't in specific worksheets
     #             continue
 
-    df = filter_df(df, institutions, date_range, fiscal_year, machines)
+    df = filter_df(df, institutions, date_range, machines)
 
     return df
 
@@ -390,12 +413,12 @@ def get_totals(DATAFRAMES, checklist, date_range, fiscal_year, worksheets, machi
     totals = {}
     for worksheet in worksheets:
         df = DATAFRAMES[worksheet]
-        filtered_df = filter_df(df, checklist, date_range, fiscal_year, machines)
+        filtered_df = filter_df(df, checklist, date_range, machines)
         inst_grps = filtered_df.groupby(["Institution"])
         avgs = []
         for group in checklist:
             try:
-                avgs.append(inst_grps.get_group(group)["Date"].value_counts().mean())
+                avgs.append(inst_grps.get_group((group,))["Date"].value_counts().mean())
             except:
                 continue
         count = int(sum(avgs))
@@ -433,20 +456,21 @@ def get_marks(fiscal_year):
     return marks
 
 
-def get_dates_from_range(date_range, fiscal_year):
-    """Given a list with a starting and ending integer, returns a list of
-    all dates in the filelist."""
-    fy_dates = get_fiscal_year_dates(fiscal_year)
-    dates = []
-    workbook_paths = get_workbook_paths("./assets/data/monthly_reports")
-    workbook_paths.sort()
-    for path in workbook_paths:
-        filename = path.split("/")[-1]
-        date = get_date_from_filename(filename)
-        if date in fy_dates:
-            dates.append(date)
+# def get_dates_from_range(date_range, fiscal_year):
+#     """Given a list with a starting and ending integer, returns a list of
+#     all dates in the filelist."""
+#     fy_dates = get_fiscal_year_dates(fiscal_year)
+#     dates = []
+#     workbook_paths = get_workbook_paths("./assets/data/monthly_reports")
+#     workbook_paths.sort()
+#     for path in workbook_paths:
+#         filename = path.split("/")[-1]
+#         date = get_date_from_filename(filename)
+#         if date in fy_dates:
+#             dates.append(date)
 
-    return dates[date_range[0] : (date_range[1] + 1)]
+#     print(dates)
+#     return dates[date_range[0] : (date_range[1] + 1)]
 
 
 def calc_monthly_avgs(df, institutions):
@@ -454,16 +478,16 @@ def calc_monthly_avgs(df, institutions):
     df_with_avgs = {"Institution": [], "Date": [], "Resource": [], "Count": []}
     for inst in institutions:
         try:
-            monthly_avg = inst_grps.get_group(inst)["Date"].value_counts().mean()
+            monthly_avg = inst_grps.get_group((inst,))["Date"].value_counts().mean()
             df_with_avgs["Institution"].append(inst)
             df_with_avgs["Date"].append("AVG")
             df_with_avgs["Count"].append(round(monthly_avg))
             df_with_avgs["Resource"].append("ALL")
-            date_grps = inst_grps.get_group(inst).groupby(["Date"])
+            date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
             for date in date_grps.groups.keys():
-                machine_grps = date_grps.get_group(date).groupby(["Resource"])
+                machine_grps = date_grps.get_group((date,)).groupby(["Resource"])
                 for machine in machine_grps.groups:
-                    current_count = machine_grps.get_group(machine).shape[0]
+                    current_count = machine_grps.get_group((machine,)).shape[0]
                     df_with_avgs["Institution"].append(inst)
                     df_with_avgs["Resource"].append(machine)
                     df_with_avgs["Count"].append(round(current_count))
@@ -489,7 +513,7 @@ def calc_node_fy_sums(df, institutions):
     df_with_avgs = {"Institution": [], "Date": [], "SU's Charged": []}
     for group in institutions:
         try:
-            sum = inst_grps.get_group(group)["SU's Charged"].sum()
+            sum = inst_grps.get_group((group,))["SU's Charged"].sum()
             df_with_avgs["Institution"].append(group)
             df_with_avgs["SU's Charged"].append(round(sum))
             df_with_avgs["Date"].append("FYTD SUM")
@@ -504,9 +528,9 @@ def calc_corral_monthly_sums(df, institutions):
     df_with_avgs = {"Institution": [], "Date": [], "Storage Granted (TB)": []}
     for inst in institutions:
         try:
-            date_grps = inst_grps.get_group(inst).groupby(["Date"])
+            date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
             for date in date_grps.groups.keys():
-                monthly_sum = date_grps.get_group(date)["Storage Granted (Gb)"].sum()
+                monthly_sum = date_grps.get_group((date,))["Storage Granted (Gb)"].sum()
                 monthly_sum = int(round(monthly_sum / 1024.0))
                 df_with_avgs["Institution"].append(inst)
                 df_with_avgs["Storage Granted (TB)"].append(round(monthly_sum))
@@ -523,7 +547,7 @@ def add_peaks_to_corral_df(df, institutions):
     inst_grps = df.groupby(["Institution"])
     for inst in institutions:
         try:
-            peak = inst_grps.get_group(inst)["Storage Granted (TB)"].max()
+            peak = inst_grps.get_group((inst,))["Storage Granted (TB)"].max()
             df.loc[len(df.index)] = [inst, "PEAK", peak]
         except:
             continue
@@ -542,11 +566,13 @@ def calc_node_monthly_sums(df, institutions):
     df_with_avgs = {"Institution": [], "Resource": [], "Date": [], "SU's Charged": []}
     for inst in institutions:
         try:
-            date_grps = inst_grps.get_group(inst).groupby(["Date"])
+            date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
             for date in date_grps.groups.keys():
-                machine_grps = date_grps.get_group(date).groupby(["Resource"])
+                machine_grps = date_grps.get_group((date,)).groupby(["Resource"])
                 for machine in machine_grps.groups:
-                    monthly_sum = machine_grps.get_group(machine)["SU's Charged"].sum()
+                    monthly_sum = machine_grps.get_group((machine,))[
+                        "SU's Charged"
+                    ].sum()
                     df_with_avgs["Institution"].append(inst)
                     df_with_avgs["Resource"].append(machine)
                     df_with_avgs["SU's Charged"].append(round(monthly_sum))
@@ -592,8 +618,52 @@ def create_conditional_style(df):
         pixel = 30 + round(name_length * 8)
         pixel = str(pixel) + "px"
         style.append({"if": {"column_id": col}, "minWidth": pixel})
-
     return style
+
+
+def get_table_styles():
+    styles = {
+        "style_header": {
+            "backgroundColor": "#fff",
+            "text_align": "left",
+            "font-family": "var(--global-font-family--sans--portal)",
+            "font-size": "var(--global-font-size--small)",
+            "border-bottom": "1px solid #222222",
+            "border-top": "0px",
+            "font-weight": "var(--bold)",
+        },
+        "style_cell": {
+            "text_align": "left",
+            "font-family": "var(--global-font-family--sans--portal)",
+            "font-size": "var(--global-font-size--small)",
+            "padding-right": "14px",
+        },
+        "style_data_conditional": [
+            {
+                "if": {"row_index": "odd"},
+                "backgroundColor": "#f4f4f4",
+            },
+            {"if": {"column_id": "SU's Charged"}, "text-align": "right"},
+            {"if": {"column_id": "Job Count"}, "text-align": "right"},
+            {"if": {"column_id": "User Count"}, "text-align": "right"},
+        ],
+        "style_header_conditional": [
+            {"if": {"column_id": "SU's Charged"}, "text-align": "right"},
+            {"if": {"column_id": "Job Count"}, "text-align": "right"},
+            {"if": {"column_id": "User Count"}, "text-align": "right"},
+        ],
+    }
+    return styles
+
+
+def make_color_map(months):
+    m = copy.deepcopy(months)
+    m.append("AVG")
+    colors = ["#d5bfff", "#6039cc", "#281066"]
+    color_map = {}
+    for i in range(len(m)):
+        color_map[m[i]] = colors[i % 3]
+    return color_map
 
 
 def get_allocation_totals(
@@ -602,7 +672,7 @@ def get_allocation_totals(
     totals = {}
     for worksheet in worksheets:
         df = DATAFRAMES[worksheet]
-        totals_df = filter_df(df, checklist, date_range, fiscal_year, machines)
+        totals_df = filter_df(df, checklist, date_range, machines)
         logging.debug(worksheet)
         logging.debug(totals_df.head())
         if worksheet == "utrc_current_allocations":
@@ -611,7 +681,7 @@ def get_allocation_totals(
         avgs = []
         for group in checklist:
             try:
-                avgs.append(inst_grps.get_group(group)["Date"].value_counts().mean())
+                avgs.append(inst_grps.get_group((group,))["Date"].value_counts().mean())
             except:
                 continue
         count = int(sum(avgs))
