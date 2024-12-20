@@ -1,6 +1,251 @@
 import copy
 from dash import html, dcc, dash_table
 import plotly.express as px
+from src.data_functions import get_all_months, create_fy_options
+
+FY_OPTIONS = create_fy_options()
+
+
+def make_date_dd(which):
+    dates = get_all_months()
+    if which == "start":
+        dd = dcc.Dropdown(
+            dates,
+            dates[0],
+            id="start_date_dd",
+        )
+    elif which == "end":
+        dd = dcc.Dropdown(
+            dates,
+            dates[-1],
+            id="end_date_dd",
+        )
+    return dd
+
+
+users_filter = html.Div(
+    [
+        html.Label(
+            "Users:",
+            htmlFor="dropdown",
+            className="filter-label",
+        ),
+        dcc.Dropdown(
+            id="dropdown",
+            options=[
+                {
+                    "label": "Active Users",
+                    "value": "utrc_individual_user_hpc_usage",
+                },
+                {"label": "New Users", "value": "utrc_new_users"},
+                {"label": "Idle Users", "value": "utrc_idle_users"},
+                {
+                    "label": "Suspended Users",
+                    "value": "utrc_suspended_users",
+                },
+            ],
+            value="utrc_individual_user_hpc_usage",
+            clearable=False,
+        ),
+    ],
+)
+
+usage_filter = html.Div(
+    [
+        html.Label(
+            "Usage:",
+            htmlFor="dropdown",
+            className="filter-label",
+        ),
+        dcc.Dropdown(
+            id="dropdown",
+            options=[
+                {"label": "Active Allocations", "value": "utrc_active_allocations"},
+                {"label": "Corral Usage", "value": "utrc_corral_usage"},
+            ],
+            value="utrc_active_allocations",
+            clearable=False,
+        ),
+    ]
+)
+
+
+allocations_filter = html.Div(
+    [
+        html.Label(
+            "Allocations:",
+            htmlFor="dropdown",
+            className="filter-label",
+        ),
+        dcc.Dropdown(
+            id="dropdown",
+            options=[
+                {"label": "Active Allocations", "value": "utrc_active_allocations"},
+                {"label": "Current Allocations", "value": "utrc_current_allocations"},
+                {"label": "New Allocations", "value": "utrc_new_allocation_requests"},
+            ],
+            value="utrc_active_allocations",
+            clearable=False,
+        ),
+    ]
+)
+
+
+def make_filters(dd_label, dd_options, dd_default):
+    return html.Div(
+        [
+            html.Button(
+                [
+                    html.H3(
+                        "Filters",
+                        className="toggle-title",
+                    ),
+                    html.I(
+                        id="chevron-icon",
+                        className="bi bi-chevron-down chevron",
+                    ),
+                ],
+                id="toggle-filters",
+                n_clicks=0,
+                className="toggle-button",
+            ),
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Label(
+                                "Institution:",
+                                htmlFor="select_institutions_dd",
+                                className="filter-label",
+                            ),
+                            html.Div(
+                                [
+                                    dcc.Dropdown(
+                                        [
+                                            "All",
+                                            "UTAus",
+                                            "UTA",
+                                            "UTD",
+                                            "UTEP",
+                                            "UTPB",
+                                            "UTRGV",
+                                            "UTSA",
+                                            "UTT",
+                                            "UTHSC-H",
+                                            "UTHSC-SA",
+                                            "UTMB",
+                                            "UTMDA",
+                                            "UTSW",
+                                            "UTSYS",
+                                        ],
+                                        ["All"],
+                                        multi=True,
+                                        id="select_institutions_dd",
+                                    ),
+                                ],
+                            ),
+                        ],
+                        id="select_institutions_div",
+                    ),
+                    html.Hr(),
+                    html.Div(
+                        [
+                            html.Label(
+                                "Machine:",
+                                htmlFor="select_machine_dd",
+                                className="filter-label",
+                            ),
+                            html.Div(
+                                dcc.Dropdown(
+                                    [
+                                        "All",
+                                        "Lonestar6",
+                                        "Frontera",
+                                        "Longhorn3",
+                                        "Stampede4",
+                                        "Lonestar5",
+                                        "Maverick3",
+                                        "Jetstream",
+                                        "Hikari",
+                                    ],
+                                    ["All"],
+                                    multi=True,
+                                    id="select_machine_dd",
+                                )
+                            ),
+                        ],
+                        id="select_machine_div",
+                    ),
+                    html.Hr(),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Label(
+                                        "Start month:",
+                                        htmlFor="start_date_dd",
+                                        className="filter-label",
+                                    ),
+                                    make_date_dd("start"),
+                                ],
+                                className="date-dropdown horizontal-beginning",
+                            ),
+                            html.Div(
+                                [
+                                    html.Label(
+                                        "End month:",
+                                        htmlFor="end_date_dd",
+                                        className="filter-label",
+                                    ),
+                                    make_date_dd("end"),
+                                ],
+                                className="date-dropdown horizontal-beginning",
+                            ),
+                            html.Div(
+                                [
+                                    html.Label(
+                                        "Fiscal year:",
+                                        htmlFor="fy_dd",
+                                        className="filter-label",
+                                    ),
+                                    dcc.Dropdown(
+                                        FY_OPTIONS,
+                                        id="fy_dd",
+                                    ),
+                                ],
+                                className="date-dropdown",
+                            ),
+                        ],
+                        style={"display": "flex"},
+                    ),
+                    html.Hr(),
+                    html.Div(
+                        [
+                            html.Label(
+                                dd_label,
+                                htmlFor="dropdown",
+                                className="filter-label",
+                            ),
+                            dcc.Dropdown(
+                                id="dropdown",
+                                options=dd_options,
+                                value=dd_default,
+                                clearable=False,
+                            ),
+                        ]
+                    ),
+                ],
+                id="filters",
+                style={
+                    "display": "",
+                    "border": "0px",
+                    "margin-top": "0px",
+                    "font-size": "1.2rem",
+                },
+                className="c-island",
+            ),
+        ]
+    )
 
 
 def create_conditional_style(df):

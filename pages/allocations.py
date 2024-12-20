@@ -13,6 +13,7 @@ from src.ui_functions import (
     make_summary_panel,
     make_data_table,
     make_bar_graph,
+    make_filters,
 )
 import logging
 
@@ -35,8 +36,16 @@ logging.debug(f"FY Options: {FY_OPTIONS}")
 
 DATAFRAMES = merge_workbooks(WORKSHEETS)
 
+dd_options = [
+    {"label": "Active Allocations", "value": "utrc_active_allocations"},
+    {"label": "Current Allocations", "value": "utrc_current_allocations"},
+    {"label": "New Allocations", "value": "utrc_new_allocation_requests"},
+]
+
 layout = html.Div(
     [
+        html.H1("Allocations", className="page-title"),
+        make_filters("Allocations:", dd_options, "utrc_active_allocations"),
         # TOTALS
         make_summary_panel(
             ["Average Total Allocations", "Average Active", "Average Idle"],

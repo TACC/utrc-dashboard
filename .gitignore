@@ -4,3 +4,4 @@
 *.xlsx#
 assets/data/accounts.txt
 assets/data/monthly_reports
+.env

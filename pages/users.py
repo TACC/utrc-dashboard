@@ -14,6 +14,7 @@ from src.ui_functions import (
     make_summary_panel,
     make_data_table,
     make_bar_graph,
+    make_filters,
 )
 import logging
 
@@ -37,11 +38,26 @@ WORKSHEETS = [
 DATAFRAMES = merge_workbooks(WORKSHEETS)
 
 
+dd_options = [
+    {
+        "label": "Active Users",
+        "value": "utrc_individual_user_hpc_usage",
+    },
+    {"label": "New Users", "value": "utrc_new_users"},
+    {"label": "Idle Users", "value": "utrc_idle_users"},
+    {
+        "label": "Suspended Users",
+        "value": "utrc_suspended_users",
+    },
+]
+
 # CUSTOMIZE LAYOUT
 layout = html.Div(
     [
         html.Div(
             [
+                html.H1("Users", className="page-title"),
+                make_filters("Users:", dd_options, "utrc_individual_user_hpc_usage"),
                 make_summary_panel(
                     ["Average Total Users", "Average Active", "Average Idle"],
                     ["total_users", "active_users", "idle_users"],

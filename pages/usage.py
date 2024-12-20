@@ -13,6 +13,7 @@ from src.ui_functions import (
     make_summary_panel,
     make_data_table,
     make_bar_graph,
+    make_filters,
 )
 import logging
 
@@ -29,8 +30,15 @@ WORKSHEETS = ["utrc_active_allocations", "utrc_corral_usage"]
 
 DATAFRAMES = merge_workbooks(WORKSHEETS)
 
+dd_options = [
+    {"label": "Active Allocations", "value": "utrc_active_allocations"},
+    {"label": "Corral Usage", "value": "utrc_corral_usage"},
+]
+
 layout = html.Div(
     [
+        html.H1("Usage", className="page-title"),
+        make_filters("Usage:", dd_options, "utrc_active_allocations"),
         # TOTALS
         make_summary_panel(
             ["Sum SUs Used", "Peak Storage Allocated (TB)"],
