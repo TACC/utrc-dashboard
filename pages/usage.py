@@ -1,9 +1,19 @@
-import pandas as pd
-import plotly.express as px
-
 import dash
-from dash import dcc, Output, Input, html, dash_table, State, ctx
-from src.scripts import *
+from dash import dcc, Output, Input, html, State, ctx
+from src.data_functions import (
+    merge_workbooks,
+    get_date_list,
+    select_df,
+    calc_node_monthly_sums,
+    calc_corral_monthly_sums,
+    calc_corral_total,
+)
+from src.ui_functions import (
+    make_df_download_button,
+    make_summary_panel,
+    make_data_table,
+    make_bar_graph,
+)
 import logging
 
 from config import settings
@@ -19,47 +29,18 @@ WORKSHEETS = ["utrc_active_allocations", "utrc_corral_usage"]
 
 DATAFRAMES = merge_workbooks(WORKSHEETS)
 
-download_button = html.Div(
-    children=[
-        html.Button(
-            "Download Data",
-            id="btn-download",
-            className="c-button c-button--primary btn-download",
-        ),
-        html.Hr(),
-        dcc.Download(id="download-usage-df"),
-    ],
-)
-
 layout = html.Div(
     [
         # TOTALS
-        html.Div(
-            [
-                html.Div(
-                    [
-                        html.Div(["Sum SUs Used"], className="counter_title"),
-                        html.Div([0], id="total_sus"),
-                    ],
-                    className="total_counters",
-                ),
-                html.Div(
-                    [
-                        html.Div(
-                            ["Peak Storage Allocated (TB)"], className="counter_title"
-                        ),
-                        html.Div([0], id="total_storage"),
-                    ],
-                    className="total_counters",
-                ),
-            ],
-            id="total_counters_wrapper",
+        make_summary_panel(
+            ["Sum SUs Used", "Peak Storage Allocated (TB)"],
+            ["total_sus", "total_storage"],
         ),
         # END TOTALS
         html.Div(children=[], id="node_graph"),
         html.Div(children=[], id="corral_graph"),
         html.Div(children=[], id="usage_table", className="my_tables"),
-        download_button,
+        make_df_download_button("usage"),
         dcc.Location(id="url"),
     ],
 )
@@ -120,28 +101,13 @@ def update_figs(
     dates = get_date_list(start_date, end_date)
     df = select_df(DATAFRAMES, dropdown, institutions, dates, machines)
 
-    styles = get_table_styles()
-
-    table = dash_table.DataTable(
-        id="datatable_id",
-        data=df.to_dict("records"),
-        columns=[{"name": i, "id": i} for i in df.columns],
-        fixed_rows={"headers": True},
-        page_size=200,
-        style_header=styles["style_header"],
-        style_cell=styles["style_cell"],
-        style_data_conditional=styles["style_data_conditional"],
-        style_cell_conditional=create_conditional_style(df),
-        style_header_conditional=styles["style_header_conditional"],
-        sort_action="native",
-        sort_by=[
+    table = make_data_table(
+        df,
+        [
             {"column_id": "SU's Charged", "direction": "desc"},
             {"column_id": "Storage Granted (Gb)", "direction": "desc"},
             {"column_id": "Institution", "direction": "asc"},
         ],
-        filter_action="native",
-        export_format="xlsx",
-        style_as_list_view=True,
     )
 
     sus_df = select_df(
@@ -153,40 +119,13 @@ def update_figs(
     )
     sus_df_calculated = calc_node_monthly_sums(sus_df, institutions)
     total_sus = int(sus_df["SU's Charged"].sum())
-    node_graph = html.Div(
-        [
-            html.H2("SU's Charged for Active Allocations"),
-            dcc.Graph(
-                figure=px.bar(
-                    data_frame=sus_df_calculated,
-                    x="Institution",
-                    y="SU's Charged",
-                    color="Date",
-                    barmode="group",
-                    text_auto=True,
-                    hover_data=["Resource"],
-                    category_orders={
-                        "Institution": [
-                            "UTAus",
-                            "UTA",
-                            "UTD",
-                            "UTEP",
-                            "UTPB",
-                            "UTRGV",
-                            "UTSA",
-                            "UTT",
-                            "UTHSC-H",
-                            "UTHSC-SA",
-                            "UTMB",
-                            "UTMDA",
-                            "UTSW",
-                            "UTSYS",
-                        ]
-                    },
-                )
-            ),
-        ],
-        className="graph-card",
+
+    node_graph = make_bar_graph(
+        sus_df_calculated,
+        "SU's Charged for Active Allocations",
+        dates,
+        "SU's Charged",
+        hover="Resource",
     )
 
     corral_df = select_df(
@@ -194,39 +133,9 @@ def update_figs(
     )
     corral_df_calculated = calc_corral_monthly_sums(corral_df, institutions)
     total_storage = calc_corral_total(corral_df, institutions)
-    corral_graph = html.Div(
-        [
-            html.H2("Corral Usage"),
-            dcc.Graph(
-                figure=px.bar(
-                    data_frame=corral_df_calculated,
-                    x="Institution",
-                    y="Storage Granted (TB)",
-                    color="Date",
-                    barmode="group",
-                    text_auto=True,
-                    category_orders={
-                        "Institution": [
-                            "UTAus",
-                            "UTA",
-                            "UTD",
-                            "UTEP",
-                            "UTPB",
-                            "UTRGV",
-                            "UTSA",
-                            "UTT",
-                            "UTHSC-H",
-                            "UTHSC-SA",
-                            "UTMB",
-                            "UTMDA",
-                            "UTSW",
-                            "UTSYS",
-                        ]
-                    },
-                )
-            ),
-        ],
-        className="graph-card",
+
+    corral_graph = make_bar_graph(
+        corral_df_calculated, "Corral Usage", dates, "Storage Granted (TB)"
     )
 
     return (

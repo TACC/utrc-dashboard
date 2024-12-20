@@ -2,7 +2,7 @@ import dash
 import dash_auth
 from dash import html, dcc, Input, Output, ctx, State, no_update
 import logging
-from src.scripts import create_fy_options, get_marks, get_all_months
+from src.data_functions import create_fy_options, get_marks, get_all_months
 import json
 
 from config import settings

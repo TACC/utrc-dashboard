@@ -1,9 +1,19 @@
-import pandas as pd
-import plotly.express as px
-
 import dash
-from dash import dcc, Output, Input, html, dash_table, State, ctx
-from src.scripts import *
+from dash import dcc, Output, Input, html, State, ctx
+from src.data_functions import (
+    create_fy_options,
+    merge_workbooks,
+    get_date_list,
+    select_df,
+    calc_monthly_avgs,
+    get_allocation_totals,
+)
+from src.ui_functions import (
+    make_df_download_button,
+    make_summary_panel,
+    make_data_table,
+    make_bar_graph,
+)
 import logging
 
 from config import settings
@@ -25,50 +35,17 @@ logging.debug(f"FY Options: {FY_OPTIONS}")
 
 DATAFRAMES = merge_workbooks(WORKSHEETS)
 
-download_button = html.Div(
-    children=[
-        html.Button(
-            "Download Data",
-            id="btn-download",
-            className="c-button c-button--primary btn-download",
-        ),
-        html.Hr(),
-        dcc.Download(id="download-allocations-df"),
-    ],
-)
-
 layout = html.Div(
     [
         # TOTALS
-        html.Div(
-            [
-                html.Div(
-                    [
-                        html.Div(["Avg Total Allocations"], className="counter_title"),
-                        html.Div([0], id="total_allocations"),
-                    ],
-                    className="total_counters",
-                ),
-                html.Div(
-                    [
-                        html.Div(["Avg Active"], className="counter_title"),
-                        html.Div([0], id="active_allocations"),
-                    ],
-                    className="total_counters",
-                ),
-                html.Div(
-                    [
-                        html.Div(["Avg Idle"], className="counter_title"),
-                        html.Div([0], id="idle_allocations"),
-                    ],
-                    className="total_counters",
-                ),
-            ],
-            id="total_counters_wrapper",
+        make_summary_panel(
+            ["Average Total Allocations", "Average Active", "Average Idle"],
+            ["total_allocations", "active_allocations", "idle_allocations"],
         ),
         # END TOTALS
         html.Div(children=[], id="allocations_bargraph", className="my_graphs"),
         html.Div(children=[], id="allocations_table", className="my_tables"),
+        make_df_download_button("allocations"),
         dcc.Location(id="url"),
     ],
 )
@@ -128,62 +105,17 @@ def update_figs(
     dates = get_date_list(start_date, end_date)
     df = select_df(DATAFRAMES, dropdown, institutions, dates, machines)
 
-    styles = get_table_styles()
-
-    table = dash_table.DataTable(
-        id="datatable_id",
-        data=df.to_dict("records"),
-        columns=[{"name": i, "id": i} for i in df.columns],
-        fixed_rows={"headers": True},
-        page_size=200,
-        style_header=styles["style_header"],
-        style_cell=styles["style_cell"],
-        style_data_conditional=styles["style_data_conditional"],
-        style_cell_conditional=create_conditional_style(df),
-        style_header_conditional=styles["style_header_conditional"],
-        sort_action="native",
-        sort_by=[{"column_id": "SU's Charged", "direction": "desc"}],
-        filter_action="native",
-        export_format="xlsx",
-        style_as_list_view=True,
-    )
+    table = make_data_table(df, [{"column_id": "SU's Charged", "direction": "desc"}])
 
     df_with_avgs = calc_monthly_avgs(df, institutions)
 
-    bargraph = html.Div(
-        [
-            html.H2("Allocations per Institution"),
-            dcc.Graph(
-                figure=px.bar(
-                    data_frame=df_with_avgs,
-                    x="Institution",
-                    y="Count",
-                    color="Date",
-                    barmode="group",
-                    text_auto=True,
-                    hover_data=["Resource"],
-                    category_orders={
-                        "Institution": [
-                            "UTAus",
-                            "UTA",
-                            "UTD",
-                            "UTEP",
-                            "UTPB",
-                            "UTRGV",
-                            "UTSA",
-                            "UTT",
-                            "UTHSC-H",
-                            "UTHSC-SA",
-                            "UTMB",
-                            "UTMDA",
-                            "UTSW",
-                            "UTSYS",
-                        ]
-                    },
-                ).update_layout(yaxis_title="Number of Allocations")
-            ),
-        ],
-        className="graph-card",
+    bargraph = make_bar_graph(
+        df_with_avgs,
+        "Allocations per Institution",
+        dates,
+        "Count",
+        "Number of Allocations",
+        "Resource",
     )
 
     totals = get_allocation_totals(
