@@ -1,9 +1,19 @@
-import pandas as pd
-import plotly.express as px
-
 import dash
-from dash import dcc, Output, Input, html, dash_table, ctx
-from src.scripts import *
+from dash import dcc, Output, Input, html, State, ctx
+from src.data_functions import (
+    create_fy_options,
+    merge_workbooks,
+    get_date_list,
+    select_df,
+    calc_monthly_avgs,
+    get_allocation_totals,
+)
+from src.ui_functions import (
+    make_df_download_button,
+    make_summary_panel,
+    make_data_table,
+    make_bar_graph,
+)
 import logging
 
 from config import settings
@@ -28,39 +38,47 @@ DATAFRAMES = merge_workbooks(WORKSHEETS)
 layout = html.Div(
     [
         # TOTALS
-        html.Div(
-            [
-                html.Div(
-                    [
-                        html.Div(["Avg Total Allocations"], className="counter_title"),
-                        html.Div([0], id="total_allocations"),
-                    ],
-                    className="total_counters",
-                ),
-                html.Div(
-                    [
-                        html.Div(["Avg Active"], className="counter_title"),
-                        html.Div([0], id="active_allocations"),
-                    ],
-                    className="total_counters",
-                ),
-                html.Div(
-                    [
-                        html.Div(["Avg Idle"], className="counter_title"),
-                        html.Div([0], id="idle_allocations"),
-                    ],
-                    className="total_counters",
-                ),
-            ],
-            id="total_counters_wrapper",
+        make_summary_panel(
+            ["Average Total Allocations", "Average Active", "Average Idle"],
+            ["total_allocations", "active_allocations", "idle_allocations"],
         ),
         # END TOTALS
         html.Div(children=[], id="allocations_bargraph", className="my_graphs"),
         html.Div(children=[], id="allocations_table", className="my_tables"),
+        make_df_download_button("allocations"),
         dcc.Location(id="url"),
     ],
-    className="body",
 )
+
+
+@app.callback(
+    Output("download-allocations-df", "data"),
+    Input("btn-download", "n_clicks"),
+    State("dropdown", "value"),
+    State("select_institutions_dd", "value"),
+    State("select_machine_dd", "value"),
+    State("start_date_dd", "value"),
+    State("end_date_dd", "value"),
+    prevent_initial_call=True,
+)
+def func(
+    n_clicks,
+    dropdown,
+    checklist,
+    machines,
+    start_date,
+    end_date,
+):
+    # prepare df
+    dates = get_date_list(start_date, end_date)
+    df = select_df(
+        DATAFRAMES,
+        dropdown,
+        checklist,
+        dates,
+        machines,
+    )
+    return dcc.send_data_frame(df.to_csv, "utrc_data.csv")
 
 
 # ADD INTERACTIVITY THROUGH CALLBACKS
@@ -71,80 +89,40 @@ layout = html.Div(
     Output("active_allocations", "children"),
     Output("idle_allocations", "children"),
     Input("dropdown", "value"),
-    Input("select_institutions_checklist", "value"),
-    Input("date_filter", "value"),
-    Input("year_radio_dcc", "value"),
-    Input("select_machine_checklist", "value"),
+    Input("select_institutions_dd", "value"),
+    Input("select_machine_dd", "value"),
+    Input("start_date_dd", "value"),
+    Input("end_date_dd", "value"),
 )
-def update_figs(dropdown, institutions, date_range, fiscal_year, machines):
+def update_figs(
+    dropdown,
+    institutions,
+    machines,
+    start_date,
+    end_date,
+):
     logging.debug(f"Callback trigger id: {ctx.triggered_id}")
-    marks = get_marks(fiscal_year)
-    if ctx.triggered_id == "year_radio_dcc":
-        df = select_df(
-            DATAFRAMES, dropdown, institutions, [0, len(marks)], fiscal_year, machines
-        )
-    else:
-        df = select_df(
-            DATAFRAMES, dropdown, institutions, date_range, fiscal_year, machines
-        )
+    dates = get_date_list(start_date, end_date)
+    df = select_df(DATAFRAMES, dropdown, institutions, dates, machines)
 
-    table = dash_table.DataTable(
-        id="datatable_id",
-        data=df.to_dict("records"),
-        columns=[{"name": i, "id": i} for i in df.columns],
-        fixed_rows={"headers": True},
-        page_size=200,
-        style_header={"backgroundColor": "#222222", "text_align": "center"},
-        style_cell={"text_align": "left"},
-        style_data_conditional=[
-            {
-                "if": {"row_index": "odd"},
-                "backgroundColor": "#f4f4f4",
-            }
-        ],
-        style_cell_conditional=create_conditional_style(df),
-        sort_action="native",
-        sort_by=[{"column_id": "SU's Charged", "direction": "desc"}],
-        filter_action="native",
-        export_format="xlsx",
-    )
+    table = make_data_table(df, [{"column_id": "SU's Charged", "direction": "desc"}])
 
     df_with_avgs = calc_monthly_avgs(df, institutions)
-    bargraph = dcc.Graph(
-        figure=px.bar(
-            data_frame=df_with_avgs,
-            x="Institution",
-            y="Count",
-            color="Date",
-            barmode="group",
-            text_auto=True,
-            hover_data=["Resource"],
-            category_orders={
-                "Institution": [
-                    "UTAus",
-                    "UTA",
-                    "UTD",
-                    "UTEP",
-                    "UTPB",
-                    "UTRGV",
-                    "UTSA",
-                    "UTT",
-                    "UTHSC-H",
-                    "UTHSC-SA",
-                    "UTMB",
-                    "UTMDA",
-                    "UTSW",
-                    "UTSYS",
-                ]
-            },
-        ).update_layout(yaxis_title="Number of Allocations")
+
+    bargraph = make_bar_graph(
+        df_with_avgs,
+        "Allocations per Institution",
+        dates,
+        "Count",
+        "Number of Allocations",
+        "Resource",
     )
 
     totals = get_allocation_totals(
         DATAFRAMES,
         institutions,
-        date_range,
-        fiscal_year,
+        dates,
+        "22-23",
         ["utrc_active_allocations", "utrc_current_allocations"],
         machines,
     )

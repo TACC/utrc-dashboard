@@ -1,8 +1,8 @@
 import dash
 import dash_auth
-from dash import html, dcc, Input, Output, ctx, State
+from dash import html, dcc, Input, Output, ctx, State, no_update
 import logging
-from src.scripts import create_fy_options, get_marks
+from src.data_functions import create_fy_options, get_marks, get_all_months
 import json
 
 from config import settings
@@ -25,44 +25,91 @@ with open("./assets/data/accounts.txt") as f:
     ACCOUNTS = json.loads(data)
 dash_auth.BasicAuth(app, ACCOUNTS)
 
-users_filter = dcc.Dropdown(
-    id="dropdown",
-    options=[
-        {
-            "label": "Active Users",
-            "value": "utrc_individual_user_hpc_usage",
-        },
-        {"label": "New Users", "value": "utrc_new_users"},
-        {"label": "Idle Users", "value": "utrc_idle_users"},
-        {
-            "label": "Suspended Users",
-            "value": "utrc_suspended_users",
-        },
+
+def make_date_dd(which):
+    dates = get_all_months()
+    if which == "start":
+        dd = dcc.Dropdown(
+            dates,
+            dates[0],
+            id="start_date_dd",
+        )
+    elif which == "end":
+        dd = dcc.Dropdown(
+            dates,
+            dates[-1],
+            id="end_date_dd",
+        )
+    return dd
+
+
+users_filter = html.Div(
+    [
+        html.Label(
+            "Users:",
+            htmlFor="dropdown",
+            className="filter-label",
+        ),
+        dcc.Dropdown(
+            id="dropdown",
+            options=[
+                {
+                    "label": "Active Users",
+                    "value": "utrc_individual_user_hpc_usage",
+                },
+                {"label": "New Users", "value": "utrc_new_users"},
+                {"label": "Idle Users", "value": "utrc_idle_users"},
+                {
+                    "label": "Suspended Users",
+                    "value": "utrc_suspended_users",
+                },
+            ],
+            value="utrc_individual_user_hpc_usage",
+            clearable=False,
+        ),
     ],
-    value="utrc_individual_user_hpc_usage",
-    clearable=False,
 )
 
-usage_filter = dcc.Dropdown(
-    id="dropdown",
-    options=[
-        {"label": "Active Allocations", "value": "utrc_active_allocations"},
-        {"label": "Corral Usage", "value": "utrc_corral_usage"},
-    ],
-    value="utrc_active_allocations",
-    clearable=False,
+usage_filter = html.Div(
+    [
+        html.Label(
+            "Usage:",
+            htmlFor="dropdown",
+            className="filter-label",
+        ),
+        dcc.Dropdown(
+            id="dropdown",
+            options=[
+                {"label": "Active Allocations", "value": "utrc_active_allocations"},
+                {"label": "Corral Usage", "value": "utrc_corral_usage"},
+            ],
+            value="utrc_active_allocations",
+            clearable=False,
+        ),
+    ]
 )
 
-allocations_filter = dcc.Dropdown(
-    id="dropdown",
-    options=[
-        {"label": "Active Allocations", "value": "utrc_active_allocations"},
-        {"label": "Current Allocations", "value": "utrc_current_allocations"},
-        {"label": "New Allocations", "value": "utrc_new_allocation_requests"},
-    ],
-    value="utrc_active_allocations",
-    clearable=False,
+
+allocations_filter = html.Div(
+    [
+        html.Label(
+            "Allocations:",
+            htmlFor="dropdown",
+            className="filter-label",
+        ),
+        dcc.Dropdown(
+            id="dropdown",
+            options=[
+                {"label": "Active Allocations", "value": "utrc_active_allocations"},
+                {"label": "Current Allocations", "value": "utrc_current_allocations"},
+                {"label": "New Allocations", "value": "utrc_new_allocation_requests"},
+            ],
+            value="utrc_active_allocations",
+            clearable=False,
+        ),
+    ]
 )
+
 
 app.layout = html.Div(
     [
@@ -123,44 +170,35 @@ app.layout = html.Div(
         html.Div(
             [
                 html.Div(id="main-title"),
-                # html.Hr(),
                 html.Button(
-                    html.H3(
-                        "Filters",
-                        style={
-                            "font-size": "18px",
-                            "margin-top": "10px",
-                            "margin-bottom": "10px",
-                            "font-family": "inherit",
-                            "font-weight": "500",
-                            "line-height": "1.1",
-                            "color": "inherit",
-                        },
-                    ),
+                    [
+                        html.H3(
+                            "Filters",
+                            className="toggle-title",
+                        ),
+                        html.I(
+                            id="chevron-icon",
+                            className="bi bi-chevron-down chevron",
+                        ),
+                    ],
                     id="toggle-filters",
                     n_clicks=0,
-                    style={
-                        "margin-bottom": "-10px",
-                        "background-color": "#ffffff",
-                        "color": "black",
-                        "box-shadow": "0px",
-                        "text-align": "left",
-                        "border-top": "0px",
-                        "border-left": "0px",
-                        "border-right": "0px",
-                        "border-bottom": "var(--global-border-width--thick) solid var(--global-color-tertiary--normal)",
-                    },
+                    className="toggle-button",
                 ),
                 html.Div(
                     [
                         html.Div(
                             [
-                                "By institution:",
+                                html.Label(
+                                    "Institution:",
+                                    htmlFor="select_institutions_dd",
+                                    className="filter-label",
+                                ),
                                 html.Div(
                                     [
                                         dcc.Dropdown(
                                             [
-                                                # "All",
+                                                "All",
                                                 "UTAus",
                                                 "UTA",
                                                 "UTD",
@@ -176,12 +214,11 @@ app.layout = html.Div(
                                                 "UTSW",
                                                 "UTSYS",
                                             ],
-                                            ["UTAus"],
+                                            ["All"],
                                             multi=True,
                                             id="select_institutions_dd",
                                         ),
                                     ],
-                                    # className="single_line_checklist",
                                 ),
                             ],
                             id="select_institutions_div",
@@ -189,122 +226,84 @@ app.layout = html.Div(
                         html.Hr(),
                         html.Div(
                             [
-                                "By machine:",
+                                html.Label(
+                                    "Machine:",
+                                    htmlFor="select_machine_dd",
+                                    className="filter-label",
+                                ),
                                 html.Div(
-                                    [
-                                        dcc.Checklist(
-                                            id="all-or-none-machine",
-                                            options=[
-                                                {"label": "Select All", "value": "All"}
-                                            ],
-                                            value=["All"],
-                                            className="select-all",
-                                        ),
-                                        dcc.Checklist(
-                                            id="select_machine_checklist",
-                                            options=[
-                                                {
-                                                    "label": "Lonestar6",
-                                                    "value": "Lonestar6",
-                                                },
-                                                {
-                                                    "label": "Frontera",
-                                                    "value": "Frontera",
-                                                },
-                                                {
-                                                    "label": "Longhorn3",
-                                                    "value": "Longhorn3",
-                                                },
-                                                {
-                                                    "label": "Stampede4",
-                                                    "value": "Stampede4",
-                                                },
-                                                {
-                                                    "label": "Lonestar5",
-                                                    "value": "Lonestar5",
-                                                },
-                                                {
-                                                    "label": "Maverick3",
-                                                    "value": "Maverick3",
-                                                },
-                                                {
-                                                    "label": "Jetstream",
-                                                    "value": "Jetstream",
-                                                },
-                                                {"label": "Hikari", "value": "Hikari"},
-                                            ],
-                                            value=[
-                                                "Lonestar6",
-                                                "Frontera",
-                                                "Longhorn3",
-                                                "Stampede4",
-                                                "Lonestar5",
-                                                "Maverick3",
-                                                "Jetstream",
-                                                "Hikari",
-                                            ],
-                                            persistence=True,
-                                            persistence_type="session",
-                                        ),
-                                    ],
-                                    className="single_line_checklist",
+                                    dcc.Dropdown(
+                                        [
+                                            "All",
+                                            "Lonestar6",
+                                            "Frontera",
+                                            "Longhorn3",
+                                            "Stampede4",
+                                            "Lonestar5",
+                                            "Maverick3",
+                                            "Jetstream",
+                                            "Hikari",
+                                        ],
+                                        ["All"],
+                                        multi=True,
+                                        id="select_machine_dd",
+                                    )
                                 ),
                             ],
                             id="select_machine_div",
-                            className="filter_div",
                         ),
                         html.Hr(),
                         html.Div(
                             [
-                                "By fiscal year:",
-                                dcc.RadioItems(
-                                    id="year_radio_dcc",
-                                    options=FY_OPTIONS,
-                                    value="21-22",
-                                    inline=True,
-                                    persistence=True,
-                                    persistence_type="session",
+                                html.Div(
+                                    [
+                                        html.Label(
+                                            "Start month:",
+                                            htmlFor="start_date_dd",
+                                            className="filter-label",
+                                        ),
+                                        make_date_dd("start"),
+                                    ],
+                                    className="date-dropdown horizontal-beginning",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label(
+                                            "End month:",
+                                            htmlFor="end_date_dd",
+                                            className="filter-label",
+                                        ),
+                                        make_date_dd("end"),
+                                    ],
+                                    className="date-dropdown horizontal-beginning",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label(
+                                            "Fiscal year:",
+                                            htmlFor="fy_dd",
+                                            className="filter-label",
+                                        ),
+                                        dcc.Dropdown(
+                                            FY_OPTIONS,
+                                            id="fy_dd",
+                                        ),
+                                    ],
+                                    className="date-dropdown",
                                 ),
                             ],
-                            id="year_radio_box",
-                            className="filter_div",
-                        ),
-                        html.Hr(),
-                        html.Div(
-                            [
-                                "By month:",
-                                dcc.RangeSlider(
-                                    id="date_filter",
-                                    value=[0, 12],
-                                    step=None,
-                                    marks={
-                                        0: "21-09",
-                                        1: "21-10",
-                                        2: "21-11",
-                                        3: "21-12",
-                                        4: "22-01",
-                                        5: "22-02",
-                                        6: "22-03",
-                                        7: "22-04",
-                                        8: "22-05",
-                                        9: "22-06",
-                                        10: "22-07",
-                                        11: "22-08",
-                                    },
-                                    min=0,
-                                    max=11,
-                                    persistence=True,
-                                    persistence_type="session",
-                                ),
-                            ],
-                            id="date_range_selector",
-                            className="filter_div",
+                            style={"display": "flex"},
                         ),
                         html.Hr(),
                         html.Div(id="page-filter"),
                     ],
                     id="filters",
-                    style={"display": "", "border": "0px", "margin-top": "0px"},
+                    style={
+                        "display": "",
+                        "border": "0px",
+                        "margin-top": "0px",
+                        "font-size": "1.2rem",
+                    },
                     className="c-island",
                 ),
                 dash.page_container,
@@ -334,38 +333,63 @@ def render_page_specific(pathname):
 
 @app.callback(
     Output("filters", "style"),
+    Output("chevron-icon", "className"),
     Input("toggle-filters", "n_clicks"),
     State("filters", "style"),
     prevent_initial_call=True,
 )
 def toggle_filters(click, state):
     if state == {"display": "none"}:
-        return {"display": "", "border": "0px", "margin-top": "0px"}
+        return {
+            "display": "",
+            "border": "0px",
+            "margin-top": "0px",
+            "font-size": "1.2rem",
+        }, "bi bi-chevron-down chevron"
     else:
-        return {"display": "none"}
-
-
-# @app.callback(
-#     Output("select_institutions_dd", "value"),
-#     [State("select_institutions_dd", "options")],
-#     prevent_initial_call=True,
-# )
-# def select_all_none(all_selected, options):
-#     all_or_none = []
-#     all_or_none = [option["value"] for option in options if all_selected == "All"]
-#     return all_or_none
+        return {"display": "none"}, "bi bi-chevron-up chevron"
 
 
 @app.callback(
-    Output("select_machine_checklist", "value"),
-    [Input("all-or-none-machine", "value")],
-    [State("select_machine_checklist", "options")],
-    prevent_initial_call=True,
+    Output("select_institutions_dd", "value"),
+    Input("select_institutions_dd", "value"),
+    [State("select_institutions_dd", "options")],
 )
-def select_all_none(all_selected, options):
-    all_or_none = []
-    all_or_none = [option["value"] for option in options if all_selected]
-    return all_or_none
+def select_all_none_inst(selected, possible):
+    opts = []
+    if "All" in selected:
+        opts = possible
+    else:
+        opts = selected
+    return opts
+
+
+@app.callback(
+    Output("select_machine_dd", "value"),
+    Input("select_machine_dd", "value"),
+    [State("select_machine_dd", "options")],
+)
+def select_all_none_machine(selected, possible):
+    opts = []
+    if "All" in selected:
+        opts = possible
+    else:
+        opts = selected
+    return opts
+
+
+@app.callback(
+    Output("start_date_dd", "value"),
+    Output("end_date_dd", "value"),
+    Input("fy_dd", "value"),
+)
+def update_dates(fy):
+    if fy:
+        marks = get_marks(fy)
+        marks_list = [x for x in marks.values()]
+        return marks_list[0], marks_list[-1]
+    else:
+        return no_update
 
 
 @app.callback(
