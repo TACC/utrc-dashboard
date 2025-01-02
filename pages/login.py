@@ -37,7 +37,7 @@ layout = html.Div(
                             n_clicks=0,
                             type="submit",
                             id="login-button",
-                            className="c-form__button btn",
+                            className="c-button c-form__button medium-button",
                         ),
                         html.Div(children="", id="output-state"),
                     ],

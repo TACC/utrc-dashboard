@@ -252,14 +252,16 @@ def update_date_range(date_range, fiscal_year):
     State("pwd-box", "value"),
     prevent_initial_call=True,
 )
-def login_button_click(n_clicks, username, password):
-    if n_clicks > 0:
+def auth_button_click(n_clicks_login, username, password):
+    if n_clicks_login > 0:
         if username not in ACCOUNTS:
             return no_update, html.P("Invalid username", className="login-error")
         if ACCOUNTS[username] == password:
             login_user(User(username))
             return "/", ""
         return no_update, html.P("Incorrect password", className="login-error")
+    else:
+        return no_update, no_update
 
 
 if __name__ == "__main__":

@@ -191,7 +191,7 @@ span.column-header-name {
     display: none;
 }
 
-.btn {
+.medium-button {
     font-size: var(--global-font-size--medium);
 }
 
@@ -271,4 +271,9 @@ span.column-header-name {
 .login-error {
     padding-top: 20px;
     color: var(--global-color-danger--dark);
+}
+
+.logout-footer {
+    display: flex;
+    justify-content: center;
 }

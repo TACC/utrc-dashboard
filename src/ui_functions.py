@@ -312,7 +312,7 @@ def make_df_download_button(page):
             html.Button(
                 "Download Data",
                 id="btn-download",
-                className="c-button c-button--primary btn",
+                className="c-button c-button--primary medium-button",
             ),
             html.Hr(),
             dcc.Download(id=f"download-{page}-df"),
