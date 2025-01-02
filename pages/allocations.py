@@ -1,3 +1,4 @@
+from flask_login import current_user
 import dash
 from dash import dcc, Output, Input, html, State, ctx
 from src.data_functions import (
@@ -42,6 +43,7 @@ dd_options = [
     {"label": "New Allocations", "value": "utrc_new_allocation_requests"},
 ]
 
+
 layout = html.Div(
     [
         html.H1("Allocations", className="page-title"),
@@ -54,7 +56,7 @@ layout = html.Div(
         # END TOTALS
         html.Div(children=[], id="allocations_bargraph", className="my_graphs"),
         html.Div(children=[], id="allocations_table", className="my_tables"),
-        make_df_download_button("allocations"),
+        html.Hr(),
         dcc.Location(id="url"),
     ],
 )
@@ -78,16 +80,19 @@ def func(
     start_date,
     end_date,
 ):
-    # prepare df
-    dates = get_date_list(start_date, end_date)
-    df = select_df(
-        DATAFRAMES,
-        dropdown,
-        checklist,
-        dates,
-        machines,
-    )
-    return dcc.send_data_frame(df.to_csv, "utrc_data.csv")
+    if not current_user.is_authenticated:
+        return ""
+    else:
+        # prepare df
+        dates = get_date_list(start_date, end_date)
+        df = select_df(
+            DATAFRAMES,
+            dropdown,
+            checklist,
+            dates,
+            machines,
+        )
+        return dcc.send_data_frame(df.to_csv, "utrc_data.csv")
 
 
 # ADD INTERACTIVITY THROUGH CALLBACKS
@@ -114,7 +119,20 @@ def update_figs(
     dates = get_date_list(start_date, end_date)
     df = select_df(DATAFRAMES, dropdown, institutions, dates, machines)
 
-    table = make_data_table(df, [{"column_id": "SU's Charged", "direction": "desc"}])
+    if not current_user.is_authenticated:
+        table = html.Div(
+            [
+                "Please ",
+                dcc.Link("login", href="/login"),
+                " to view and download more data",
+            ],
+            className="login-note",
+        )
+    else:
+        table = [
+            make_data_table(df, [{"column_id": "SU's Charged", "direction": "desc"}]),
+            make_df_download_button("allocations"),
+        ]
 
     df_with_avgs = calc_monthly_avgs(df, institutions)
 

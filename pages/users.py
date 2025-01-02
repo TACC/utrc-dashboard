@@ -1,5 +1,5 @@
 import pandas as pd
-
+from flask_login import current_user
 import dash
 from dash import dcc, Output, Input, html, State, ctx
 from src.data_functions import (
@@ -64,7 +64,7 @@ layout = html.Div(
                 ),
                 html.Div(children=[], id="bargraph"),
                 html.Div(children=[], id="table"),
-                make_df_download_button("users"),
+                html.Hr(),
             ],
         ),
         dcc.Location(id="url"),
@@ -91,16 +91,19 @@ def func(
     start_date,
     end_date,
 ):
-    # prepare df
-    dates = get_date_list(start_date, end_date)
-    df = select_df(
-        DATAFRAMES,
-        dropdown,
-        checklist,
-        dates,
-        machines,
-    )
-    return dcc.send_data_frame(df.to_csv, "utrc_data.csv")
+    if not current_user.is_authenticated:
+        return ""
+    else:
+        # prepare df
+        dates = get_date_list(start_date, end_date)
+        df = select_df(
+            DATAFRAMES,
+            dropdown,
+            checklist,
+            dates,
+            machines,
+        )
+        return dcc.send_data_frame(df.to_csv, "utrc_data.csv")
 
 
 @app.callback(
@@ -132,7 +135,20 @@ def update_figs(
         machines,
     )
 
-    table = make_data_table(df)
+    if not current_user.is_authenticated:
+        table = html.Div(
+            [
+                "Please ",
+                dcc.Link("login", href="/login"),
+                " to view and download more data",
+            ],
+            className="login-note",
+        )
+    else:
+        table = [
+            make_data_table(df),
+            make_df_download_button("users"),
+        ]
 
     inst_grps = df.groupby(["Institution"])
     df_with_avgs = {"Institution": [], "Date": []}

@@ -242,3 +242,9 @@ span.column-header-name {
 #auth-link :hover {
     text-decoration: none;
 }
+
+/* login */
+
+.login-note {
+    font-size: var(--global-font-size--small);
+}

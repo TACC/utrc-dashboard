@@ -1,3 +1,4 @@
+from flask_login import current_user
 import dash
 from dash import dcc, Output, Input, html, State, ctx
 from src.data_functions import (
@@ -48,7 +49,7 @@ layout = html.Div(
         html.Div(children=[], id="node_graph"),
         html.Div(children=[], id="corral_graph"),
         html.Div(children=[], id="usage_table", className="my_tables"),
-        make_df_download_button("usage"),
+        html.Hr(),
         dcc.Location(id="url"),
     ],
 )
@@ -72,16 +73,19 @@ def func(
     start_date,
     end_date,
 ):
-    # prepare df
-    dates = get_date_list(start_date, end_date)
-    df = select_df(
-        DATAFRAMES,
-        dropdown,
-        checklist,
-        dates,
-        machines,
-    )
-    return dcc.send_data_frame(df.to_csv, "utrc_data.csv")
+    if not current_user.is_authenticated:
+        return ""
+    else:
+        # prepare df
+        dates = get_date_list(start_date, end_date)
+        df = select_df(
+            DATAFRAMES,
+            dropdown,
+            checklist,
+            dates,
+            machines,
+        )
+        return dcc.send_data_frame(df.to_csv, "utrc_data.csv")
 
 
 # ADD INTERACTIVITY THROUGH CALLBACKS
@@ -109,14 +113,27 @@ def update_figs(
     dates = get_date_list(start_date, end_date)
     df = select_df(DATAFRAMES, dropdown, institutions, dates, machines)
 
-    table = make_data_table(
-        df,
-        [
-            {"column_id": "SU's Charged", "direction": "desc"},
-            {"column_id": "Storage Granted (Gb)", "direction": "desc"},
-            {"column_id": "Institution", "direction": "asc"},
-        ],
-    )
+    if not current_user.is_authenticated:
+        table = html.Div(
+            [
+                "Please ",
+                dcc.Link("login", href="/login"),
+                " to view and download more data",
+            ],
+            className="login-note",
+        )
+    else:
+        table = [
+            make_data_table(
+                df,
+                [
+                    {"column_id": "SU's Charged", "direction": "desc"},
+                    {"column_id": "Storage Granted (Gb)", "direction": "desc"},
+                    {"column_id": "Institution", "direction": "asc"},
+                ],
+            ),
+            make_df_download_button("usage"),
+        ]
 
     sus_df = select_df(
         DATAFRAMES,
