@@ -312,7 +312,7 @@ def make_df_download_button(page):
             html.Button(
                 "Download Data",
                 id="btn-download",
-                className="c-button c-button--primary btn-download",
+                className="c-button c-button--primary btn",
             ),
             html.Hr(),
             dcc.Download(id=f"download-{page}-df"),
@@ -438,6 +438,6 @@ def make_bar_graph(df, title, dates, yaxis, ytitle=None, hover=None):
     if ytitle:
         fig.update_layout(yaxis_title=ytitle)
     return html.Div(
-        [html.H2("Users per Institution"), dcc.Graph(figure=fig)],
+        [html.H2(title), dcc.Graph(figure=fig)],
         className="graph-card",
     )

@@ -15,7 +15,11 @@ def layout():
         logout_user()
     return html.Div(
         [
-            html.Div(html.H2("You have been logged out - Please login")),
+            html.Div(
+                html.H2(
+                    "You have been logged out - Please login", className="auth-title"
+                )
+            ),
             html.Br(),
             dcc.Link("Home", href="/"),
         ]

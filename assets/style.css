@@ -1,9 +1,9 @@
-@import url("https://cdn.jsdelivr.net/npm/@tacc/core-styles@2.37.2/dist/core-styles.base.css");
-@import url("https://cdn.jsdelivr.net/npm/@tacc/core-styles@2.37.2/dist/core-styles.portal.css");
-@import url("https://cdn.jsdelivr.net/npm/@tacc/core-styles@2.37.2/dist/core-styles.header.css");
 @import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap");
 @import url("https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css");
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+@import url("https://cdn.jsdelivr.net/npm/@tacc/core-styles@2.37.2/dist/core-styles.base.css");
+@import url("https://cdn.jsdelivr.net/npm/@tacc/core-styles@2.37.2/dist/core-styles.portal.css");
+@import url("https://cdn.jsdelivr.net/npm/@tacc/core-styles@2.37.2/dist/core-styles.header.css");
 
 /* MAIN DOCUMENT */
 html, body {
@@ -55,7 +55,7 @@ html, body {
     line-height: 1.2;
     margin-bottom: 40px;
     margin-bottom: 27px;
-    margin-top: 27px;
+    margin-top: 30px;
     color: var(--global-color-primary--xx-dark);
 }
 
@@ -191,8 +191,8 @@ span.column-header-name {
     display: none;
 }
 
-.btn-download {
-    font-size: 14px;
+.btn {
+    font-size: var(--global-font-size--medium);
 }
 
 /* Total Counters */
@@ -247,4 +247,28 @@ span.column-header-name {
 
 .login-note {
     font-size: var(--global-font-size--small);
+}
+
+.form-title {
+    padding-top: 30px;
+    text-align: center;
+    font-size: 2.4rem;
+    font-weight: var(--black);
+    color: var(--global-color-primary--xx-dark);
+}
+
+.form-desc {
+    text-align: center;
+    font-weight: var(--medium);
+    font-size: 1.6rem;
+    color: var(--global-color-primary--xx-dark);
+}
+
+.form-field {
+    padding: 12px;
+}
+
+.login-error {
+    padding-top: 20px;
+    color: var(--global-color-danger--dark);
 }

@@ -245,6 +245,7 @@ def update_date_range(date_range, fiscal_year):
 
 
 @app.callback(
+    Output("url", "href"),
     Output("output-state", "children"),
     Input("login-button", "n_clicks"),
     State("uname-box", "value"),
@@ -254,11 +255,11 @@ def update_date_range(date_range, fiscal_year):
 def login_button_click(n_clicks, username, password):
     if n_clicks > 0:
         if username not in ACCOUNTS:
-            return "Invalid username"
+            return no_update, html.P("Invalid username", className="login-error")
         if ACCOUNTS[username] == password:
             login_user(User(username))
-            return "Login Successful"
-        return "Incorrect  password"
+            return "/", ""
+        return no_update, html.P("Incorrect password", className="login-error")
 
 
 if __name__ == "__main__":

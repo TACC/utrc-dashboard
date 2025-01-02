@@ -1,8 +1,3 @@
-"""
-Code from this example: https://github.com/AnnMarieW/dash-flask-login
-TODO: replace/modify
-"""
-
 import dash
 from dash import html, dcc
 
@@ -12,12 +7,45 @@ dash.register_page(__name__)
 # Login screen
 layout = html.Div(
     [
-        html.H2("Please log in to continue:", id="h1"),
-        dcc.Input(placeholder="Enter your username", type="text", id="uname-box"),
-        dcc.Input(placeholder="Enter your password", type="password", id="pwd-box"),
-        html.Button(children="Login", n_clicks=0, type="submit", id="login-button"),
-        html.Div(children="", id="output-state"),
+        html.Div(
+            [
+                html.H3("Log In", className="c-form__title form-title"),
+                html.P(
+                    "Please log in to view and download additional data",
+                    className="c-form__desc form-desc",
+                ),
+                html.Div(
+                    [
+                        html.Label("Username", htmlFor="uname-box"),
+                        dcc.Input(type="text", id="uname-box", className="form-field"),
+                    ],
+                    className="c-form__field has-required",
+                ),
+                html.Div(
+                    [
+                        html.Label("Password", htmlFor="pwd-box"),
+                        dcc.Input(
+                            type="password", id="pwd-box", className="form-field"
+                        ),
+                    ],
+                    className="c-form__field has-required",
+                ),
+                html.Footer(
+                    [
+                        html.Button(
+                            children="Login",
+                            n_clicks=0,
+                            type="submit",
+                            id="login-button",
+                            className="c-form__button btn",
+                        ),
+                        html.Div(children="", id="output-state"),
+                    ],
+                    className="c-form__buttons",
+                ),
+            ],
+            className="c-form c-form--login",
+        ),
         html.Br(),
-        dcc.Link("Home", href="/"),
     ]
 )
