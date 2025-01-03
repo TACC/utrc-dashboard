@@ -201,9 +201,6 @@ def toggle_filters(click, state):
     if state == {"display": "none"}:
         return {
             "display": "",
-            "border": "0px",
-            "margin-top": "0px",
-            "font-size": "1.2rem",
         }, "bi bi-chevron-down chevron"
     else:
         return {"display": "none"}, "bi bi-chevron-up chevron"

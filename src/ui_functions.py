@@ -238,9 +238,6 @@ def make_filters(dd_label, dd_options, dd_default):
                 id="filters",
                 style={
                     "display": "",
-                    "border": "0px",
-                    "margin-top": "0px",
-                    "font-size": "1.2rem",
                 },
                 className="c-island",
             ),
