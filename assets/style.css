@@ -202,6 +202,7 @@ span.column-header-name {
     font-size: 1.8rem;
     font-weight: 800;
     color: #ffffff;
+    text-align: center;
 }
 
 /* authentication */
