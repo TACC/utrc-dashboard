@@ -74,8 +74,8 @@ app.layout = html.Div(
                                                 )
                                             ],
                                             # className="navbar-toggler collapsed",
-                                            className="hamburger-icon",
-                                            id="hamburger-icon",
+                                            className="hamburger-button",
+                                            id="hamburger-button",
                                         ),
                                     ]
                                 ),
@@ -126,7 +126,7 @@ app.layout = html.Div(
                                     id="auth-nav",
                                 ),
                             ],
-                            className="toggle-menu",
+                            className="collapse-nav",
                         ),
                     ],
                     className="s-header navbar navbar-dark navbar-expand-md flex-nav",
@@ -149,15 +149,15 @@ for page in dash.page_registry.values():
 
 @app.callback(
     Output("navbar-content", "className"),
-    Input("hamburger-icon", "n_clicks"),
+    Input("hamburger-button", "n_clicks"),
 )
 def toggle_menu(n_clicks):
-    if n_clicks % 2 == 0:
-        # hide
-        return "s-header navbar navbar-dark navbar-expand-md flex-nav"
-    else:
+    if n_clicks is not None and n_clicks % 2 == 1:
         # show
         return "s-header navbar navbar-dark navbar-expand-md flex-nav show-nav"
+    else:
+        # hide
+        return "s-header navbar navbar-dark navbar-expand-md flex-nav"
 
 
 @app.callback(
@@ -170,7 +170,7 @@ def update_authentication_status(_):
             [
                 html.I(
                     id="auth-icon",
-                    className="bi bi-person-circle",
+                    className="bi bi-person-circle auth-nav__icon",
                 ),
                 "Log out",
             ],
@@ -181,7 +181,7 @@ def update_authentication_status(_):
         [
             html.I(
                 id="auth-icon",
-                className="bi bi-person-circle",
+                className="bi bi-person-circle auth-nav__icon",
             ),
             "Log in",
         ],
@@ -201,9 +201,9 @@ def toggle_filters(click, state):
     if state == {"display": "none"}:
         return {
             "display": "",
-        }, "bi bi-chevron-down chevron"
+        }, "bi bi-chevron-down filter-toggle__chevron"
     else:
-        return {"display": "none"}, "bi bi-chevron-up chevron"
+        return {"display": "none"}, "bi bi-chevron-up filter-toggle__chevron"
 
 
 @app.callback(
@@ -248,42 +248,42 @@ def update_dates(fy):
         return no_update
 
 
-@app.callback(
-    Output("date_range_selector", "children"),
-    Input("date_filter", "value"),
-    Input("year_radio_dcc", "value"),
-)
-def update_date_range(date_range, fiscal_year):
-    logging.debug(f"Callback trigger id: {ctx.triggered_id}")
-    marks = get_marks(fiscal_year)
-    if ctx.triggered_id == "year_radio_dcc":
-        logging.debug(f"Marks = {marks}")
-        slider_children = [
-            "By month:",
-            dcc.RangeSlider(
-                id="date_filter",
-                value=[0, len(marks)],
-                step=None,
-                marks=marks,
-                min=0,
-                max=len(marks) - 1,
-            ),
-        ]
-    else:
-        logging.debug(f"Marks = {marks}")
-        logging.debug(f"date_range = {date_range}")
-        slider_children = [
-            "By month:",
-            dcc.RangeSlider(
-                id="date_filter",
-                value=date_range,
-                step=None,
-                marks=marks,
-                min=0,
-                max=len(marks) - 1,
-            ),
-        ]
-    return slider_children
+# @app.callback(
+#     Output("date_range_selector", "children"),
+#     Input("date_filter", "value"),
+#     Input("year_radio_dcc", "value"),
+# )
+# def update_date_range(date_range, fiscal_year):
+#     logging.debug(f"Callback trigger id: {ctx.triggered_id}")
+#     marks = get_marks(fiscal_year)
+#     if ctx.triggered_id == "year_radio_dcc":
+#         logging.debug(f"Marks = {marks}")
+#         slider_children = [
+#             "By month:",
+#             dcc.RangeSlider(
+#                 id="date_filter",
+#                 value=[0, len(marks)],
+#                 step=None,
+#                 marks=marks,
+#                 min=0,
+#                 max=len(marks) - 1,
+#             ),
+#         ]
+#     else:
+#         logging.debug(f"Marks = {marks}")
+#         logging.debug(f"date_range = {date_range}")
+#         slider_children = [
+#             "By month:",
+#             dcc.RangeSlider(
+#                 id="date_filter",
+#                 value=date_range,
+#                 step=None,
+#                 marks=marks,
+#                 min=0,
+#                 max=len(marks) - 1,
+#             ),
+#         ]
+#     return slider_children
 
 
 @app.callback(
@@ -297,11 +297,11 @@ def update_date_range(date_range, fiscal_year):
 def auth_button_click(n_clicks_login, username, password):
     if n_clicks_login > 0:
         if username not in ACCOUNTS:
-            return no_update, html.P("Invalid username", className="login-error")
+            return no_update, html.P("Invalid username", className="auth-form__error")
         if ACCOUNTS[username] == password:
             login_user(User(username))
             return "/", ""
-        return no_update, html.P("Incorrect password", className="login-error")
+        return no_update, html.P("Incorrect password", className="auth-form__error")
     else:
         return no_update, no_update
 

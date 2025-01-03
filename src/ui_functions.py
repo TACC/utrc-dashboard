@@ -28,7 +28,7 @@ users_filter = html.Div(
         html.Label(
             "Users:",
             htmlFor="dropdown",
-            className="filter-label",
+            className="filter-box__label",
         ),
         dcc.Dropdown(
             id="dropdown",
@@ -55,7 +55,7 @@ usage_filter = html.Div(
         html.Label(
             "Usage:",
             htmlFor="dropdown",
-            className="filter-label",
+            className="filter-box__label",
         ),
         dcc.Dropdown(
             id="dropdown",
@@ -75,7 +75,7 @@ allocations_filter = html.Div(
         html.Label(
             "Allocations:",
             htmlFor="dropdown",
-            className="filter-label",
+            className="filter-box__label",
         ),
         dcc.Dropdown(
             id="dropdown",
@@ -98,16 +98,16 @@ def make_filters(dd_label, dd_options, dd_default):
                 [
                     html.H3(
                         "Filters",
-                        className="toggle-title",
+                        className="filter-toggle__title",
                     ),
                     html.I(
                         id="chevron-icon",
-                        className="bi bi-chevron-down chevron",
+                        className="bi bi-chevron-down filter-toggle__chevron",
                     ),
                 ],
                 id="toggle-filters",
                 n_clicks=0,
-                className="toggle-button",
+                className="filter-toggle__button",
             ),
             html.Div(
                 [
@@ -116,7 +116,7 @@ def make_filters(dd_label, dd_options, dd_default):
                             html.Label(
                                 "Institution:",
                                 htmlFor="select_institutions_dd",
-                                className="filter-label",
+                                className="filter-box__label",
                             ),
                             html.Div(
                                 [
@@ -153,7 +153,7 @@ def make_filters(dd_label, dd_options, dd_default):
                             html.Label(
                                 "Machine:",
                                 htmlFor="select_machine_dd",
-                                className="filter-label",
+                                className="filter-box__label",
                             ),
                             html.Div(
                                 dcc.Dropdown(
@@ -184,29 +184,29 @@ def make_filters(dd_label, dd_options, dd_default):
                                     html.Label(
                                         "Start month:",
                                         htmlFor="start_date_dd",
-                                        className="filter-label",
+                                        className="filter-box__label",
                                     ),
                                     make_date_dd("start"),
                                 ],
-                                className="date-dropdown horizontal-beginning",
+                                className="date-dropdown date-dropdown--not-last",
                             ),
                             html.Div(
                                 [
                                     html.Label(
                                         "End month:",
                                         htmlFor="end_date_dd",
-                                        className="filter-label",
+                                        className="filter-box__label",
                                     ),
                                     make_date_dd("end"),
                                 ],
-                                className="date-dropdown horizontal-beginning",
+                                className="date-dropdown date-dropdown--not-last",
                             ),
                             html.Div(
                                 [
                                     html.Label(
                                         "Fiscal year:",
                                         htmlFor="fy_dd",
-                                        className="filter-label",
+                                        className="filter-box__label",
                                     ),
                                     dcc.Dropdown(
                                         FY_OPTIONS,
@@ -224,7 +224,7 @@ def make_filters(dd_label, dd_options, dd_default):
                             html.Label(
                                 dd_label,
                                 htmlFor="dropdown",
-                                className="filter-label",
+                                className="filter-box__label",
                             ),
                             dcc.Dropdown(
                                 id="dropdown",
@@ -239,7 +239,7 @@ def make_filters(dd_label, dd_options, dd_default):
                 style={
                     "display": "",
                 },
-                className="c-island",
+                className="c-island filter-box",
             ),
         ]
     )
@@ -309,7 +309,7 @@ def make_df_download_button(page):
             html.Button(
                 "Download Data",
                 id="btn-download",
-                className="c-button c-button--primary medium-button",
+                className="c-button c-button--primary button--medium",
             ),
             html.Hr(),
             dcc.Download(id=f"download-{page}-df"),
@@ -326,13 +326,15 @@ def make_summary_panel(names, ids):
             stat_list.append(
                 html.Div(
                     [
-                        html.Div([names[i]], className="counter_title"),
+                        html.Div([names[i]], className="summary-panel__metric__title"),
                         html.Div([0], id=ids[i]),
                     ],
-                    className="total_counters",
+                    className="summary-panel__metric",
                 )
             )
-        return html.Div(stat_list, id="total_counters_wrapper")
+        return html.Div(
+            stat_list, id="total_counters_wrapper", className="summary-panel__wrapper"
+        )
 
 
 def make_data_table(df, sort_by=None):

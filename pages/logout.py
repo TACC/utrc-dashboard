@@ -7,10 +7,10 @@ dash.register_page(__name__)
 
 layout = html.Div(
     [
-        html.H3("Log Out", className="c-form__title form-title"),
+        html.H3("Log Out", className="c-form__title auth-form__title"),
         html.P(
             "Click the button to log out",
-            className="c-form__desc form-desc",
+            className="c-form__desc auth-form__desc",
         ),
         html.Footer(
             [
@@ -23,10 +23,10 @@ layout = html.Div(
                     ),
                     id="logout-link",
                     href="/login",
-                    className="c-button c-form__button medium-button",
+                    className="c-button c-form__button button--medium",
                 )
             ],
-            className="c-form__buttons logout-footer",
+            className="c-form__buttons auth-form__footer",
         ),
     ],
     className="c-form c-form--login",
