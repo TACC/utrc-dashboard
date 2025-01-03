@@ -226,13 +226,15 @@ span.column-header-name {
     color: #ffffff;
 }
 
-.auth_nav {
+#auth-nav {
     margin-left: auto;
 }
 
 #auth-icon {
     align-self: center;
     font-size: 20px;
+    margin-right: .5em;
+    margin-left: 5px;
 }
 
 .auth_nav .nav-item {
@@ -276,4 +278,74 @@ span.column-header-name {
 .logout-footer {
     display: flex;
     justify-content: center;
+}
+
+/* nav */
+
+.toggle-menu {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.hamburger-icon {
+    display: none;
+    color: rgba(255, 255, 255, .5);
+    padding: .25rem .75rem .25rem .75rem;
+    font-size: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: .25rem;
+    background: transparent;
+    margin-left: auto;
+}
+
+/* media query that swaps wide nav for hamburger nav */
+
+@media (max-width: 768px) {
+
+    .toggle-menu {
+        width: 0px;
+    }
+
+    .hamburger-icon {
+        display: unset;
+    }
+
+    .menu-links, .auth-nav {
+        display: none;
+    }
+
+    .show-nav #auth-nav {
+        margin-left: 0px;
+    }
+
+    .show-nav .auth-nav, .show-nav .menu-links {
+        display: unset;
+
+    }
+
+    .show-nav .toggle-menu, .show-nav .menu-links ul {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .show-nav .toggle-menu, .show-nav .menu-links ul li {
+        width: 100%;
+    }
+
+    .s-header.navbar.show-nav {
+        height: 205px;
+        display: flex;
+        flex-direction: column;
+        justify-content: left;
+        align-items: flex-start;
+    }
+
+    .navbar-logo-section {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+    }
+
 }

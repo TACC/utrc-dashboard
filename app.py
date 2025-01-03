@@ -56,61 +56,81 @@ app.layout = html.Div(
                 html.Div(
                     children=[
                         html.Div(
-                            html.A(
-                                html.Img(
-                                    src="assets/images/utrc-horizontal-logo-white-simple.svg",
-                                    className="portal-logo",
+                            [
+                                html.A(
+                                    html.Img(
+                                        src="assets/images/utrc-horizontal-logo-white-simple.svg",
+                                        className="portal-logo",
+                                    ),
+                                    href="https://utrc.tacc.utexas.edu/",
+                                    className="navbar-brand",
                                 ),
-                                href="https://utrc.tacc.utexas.edu/",
-                                className="navbar-brand",
-                            ),
-                        ),
-                        html.Div(
-                            html.Div(
-                                html.Ul(
-                                    children=[
-                                        html.Li(
-                                            html.A(
-                                                "Users",
-                                                href="/",
-                                                className="nav-link",
-                                            ),
-                                            className="nav-item",
+                                html.Div(
+                                    [
+                                        html.Button(
+                                            [
+                                                html.Span(
+                                                    className="navbar-toggler-icon"
+                                                )
+                                            ],
+                                            # className="navbar-toggler collapsed",
+                                            className="hamburger-icon",
+                                            id="hamburger-icon",
                                         ),
-                                        html.Li(
-                                            html.A(
-                                                "Allocations",
-                                                href="/allocations",
-                                                className="nav-link",
-                                            ),
-                                            className="nav-item",
-                                        ),
-                                        html.Li(
-                                            html.A(
-                                                "Usage",
-                                                href="/usage",
-                                                className="nav-link",
-                                            ),
-                                            className="nav-item",
-                                        ),
-                                    ],
-                                    className="s-cms-nav navbar-nav mr-auto",
+                                    ]
                                 ),
-                                className="collapse navbar-collapse",
-                            ),
+                            ],
+                            className="navbar-logo-section",
                         ),
                         html.Div(
                             [
-                                html.I(
-                                    id="auth-icon",
-                                    className="bi bi-person-circle",
+                                html.Div(
+                                    html.Ul(
+                                        children=[
+                                            html.Li(
+                                                html.A(
+                                                    "Users",
+                                                    href="/",
+                                                    className="nav-link",
+                                                ),
+                                                className="nav-item",
+                                            ),
+                                            html.Li(
+                                                html.A(
+                                                    "Allocations",
+                                                    href="/allocations",
+                                                    className="nav-link",
+                                                ),
+                                                className="nav-item",
+                                            ),
+                                            html.Li(
+                                                html.A(
+                                                    "Usage",
+                                                    href="/usage",
+                                                    className="nav-link",
+                                                ),
+                                                className="nav-item",
+                                            ),
+                                        ],
+                                        className="s-cms-nav navbar-nav mr-auto",
+                                    ),
+                                    # className="navbar-collapse collapse menu-links",
+                                    className="menu-links",
+                                    id="navbar-links",
                                 ),
-                                html.Div(id="auth-link"),
+                                html.Div(
+                                    [
+                                        html.Div(id="auth-link"),
+                                    ],
+                                    className="auth-nav nav-item login-menu",
+                                    id="auth-nav",
+                                ),
                             ],
-                            className="auth_nav nav-item",
+                            className="toggle-menu",
                         ),
                     ],
-                    className="s-header navbar navbar-dark navbar-expand-md",
+                    className="s-header navbar navbar-dark navbar-expand-md flex-nav",
+                    id="navbar-content",
                 ),
             ],
         ),
@@ -128,18 +148,43 @@ for page in dash.page_registry.values():
 
 
 @app.callback(
+    Output("navbar-content", "className"),
+    Input("hamburger-icon", "n_clicks"),
+)
+def toggle_menu(n_clicks):
+    if n_clicks % 2 == 0:
+        # hide
+        return "s-header navbar navbar-dark navbar-expand-md flex-nav"
+    else:
+        # show
+        return "s-header navbar navbar-dark navbar-expand-md flex-nav show-nav"
+
+
+@app.callback(
     Output("auth-link", "children"),
     Input("url", "pathname"),
 )
 def update_authentication_status(_):
     if current_user.is_authenticated:
         return html.A(
-            "Log out",
+            [
+                html.I(
+                    id="auth-icon",
+                    className="bi bi-person-circle",
+                ),
+                "Log out",
+            ],
             href="/logout",
             className="nav-link",
         )
     return html.A(
-        "Log in",
+        [
+            html.I(
+                id="auth-icon",
+                className="bi bi-person-circle",
+            ),
+            "Log in",
+        ],
         href="/login",
         className="nav-link",
     )
