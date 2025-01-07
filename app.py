@@ -1,13 +1,18 @@
 import dash
 
-from dash import html, dcc, Input, Output, ctx, State, no_update
+from dash import html, dcc, Input, Output, State, no_update
 import logging
 from src.data_functions import create_fy_options, get_marks
 import json
 import os
 from dotenv import load_dotenv
-from flask import Flask
-from flask_login import login_user, LoginManager, UserMixin, current_user
+from flask import Flask, session
+from flask_login import (
+    login_user,
+    LoginManager,
+    UserMixin,
+    current_user,
+)
 
 from config import settings
 
@@ -18,6 +23,7 @@ logging.basicConfig(level=LOGGING_LEVEL)
 FY_OPTIONS = create_fy_options()
 
 server = Flask(__name__)
+server.config["MAX_LOGIN_ATTEMPTS"] = 3
 app = dash.Dash(
     __name__,
     server=server,
@@ -25,12 +31,10 @@ app = dash.Dash(
     prevent_initial_callbacks="initial_duplicate",
     suppress_callback_exceptions=True,
     title="UTRC Dashboard",
+    # include_pages_meta=False,
 )
 
-
-with open("./assets/data/accounts.txt") as f:
-    data = f.read()
-    ACCOUNTS = json.loads(data)
+ACCOUNTS = json.loads(os.getenv("ACCOUNTS"))
 
 server.config.update(SECRET_KEY=os.getenv("SECRET_KEY"))
 login_manager = LoginManager()
@@ -248,44 +252,6 @@ def update_dates(fy):
         return no_update
 
 
-# @app.callback(
-#     Output("date_range_selector", "children"),
-#     Input("date_filter", "value"),
-#     Input("year_radio_dcc", "value"),
-# )
-# def update_date_range(date_range, fiscal_year):
-#     logging.debug(f"Callback trigger id: {ctx.triggered_id}")
-#     marks = get_marks(fiscal_year)
-#     if ctx.triggered_id == "year_radio_dcc":
-#         logging.debug(f"Marks = {marks}")
-#         slider_children = [
-#             "By month:",
-#             dcc.RangeSlider(
-#                 id="date_filter",
-#                 value=[0, len(marks)],
-#                 step=None,
-#                 marks=marks,
-#                 min=0,
-#                 max=len(marks) - 1,
-#             ),
-#         ]
-#     else:
-#         logging.debug(f"Marks = {marks}")
-#         logging.debug(f"date_range = {date_range}")
-#         slider_children = [
-#             "By month:",
-#             dcc.RangeSlider(
-#                 id="date_filter",
-#                 value=date_range,
-#                 step=None,
-#                 marks=marks,
-#                 min=0,
-#                 max=len(marks) - 1,
-#             ),
-#         ]
-#     return slider_children
-
-
 @app.callback(
     Output("url", "href"),
     Output("output-state", "children"),
@@ -295,6 +261,16 @@ def update_dates(fy):
     prevent_initial_call=True,
 )
 def auth_button_click(n_clicks_login, username, password):
+    if "login_attempts" in session:
+        if session["login_attempts"] >= server.config["MAX_LOGIN_ATTEMPTS"]:
+            return no_update, html.P(
+                "Your account has been locked. Please try again later.",
+                className="auth-form__error",
+            )
+        else:
+            session["login_attempts"] += 1
+    else:
+        session["login_attempts"] = 1
     if n_clicks_login > 0:
         if username not in ACCOUNTS:
             return no_update, html.P("Invalid username", className="auth-form__error")

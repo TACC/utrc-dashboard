@@ -1,0 +1,7 @@
+services:
+  full:
+    build:
+      dockerfile: Dockerfile
+      network: host
+    ports:
+      - "8050:8050"
