@@ -1,16 +1,16 @@
-import pandas as pd
 import logging
-from os import walk
 import re
 from datetime import datetime
+from os import walk
+
+import pandas as pd
 from fuzzywuzzy import fuzz
+
 from .constants import (
-    REPORTS_PATH,
-    INSTITUTIONS,
     COLUMN_HEADERS,
     COLUMN_ORDER,
-    PROTECTED_COLUMNS,
-    NODE_HOURS_MODIFIER,
+    INSTITUTIONS,
+    REPORTS_PATH,
     WORKSHEETS_RM_DUPLICATES,
 )
 
@@ -85,7 +85,6 @@ def append_date_to_worksheets(workbook, filename):
 
 
 def get_date_from_filename(filename, prefix="utrc_report"):
-    # utrc_report_2017-01-01_to_2017-02-01.xlsx
     pattern = re.compile("{}_(.*)_to_(.*).xlsx".format(prefix))
     match = pattern.match(filename)
     series_date = ""
@@ -142,7 +141,7 @@ def clean_df(df):
     for i in range(df.shape[0]):
         try:
             df.loc[i, "Institution"] = INSTITUTIONS[df.loc[i, "Institution"]]
-        except:
+        except KeyError:
             df.loc[i, "Institution"] = fuzzy_match_institution(df.loc[i, "Institution"])
 
 
@@ -150,7 +149,7 @@ def remove_duplicates(df):
     # Remove duplicates from individual sheets
     try:
         df.drop_duplicates(subset=["Login"], inplace=True)
-    except:
+    except KeyError:
         pass  # Some worksheets do not have a login column
 
 
@@ -166,21 +165,9 @@ def filter_df(df, institutions, date_range, machines):
 
 
 def select_df(DATAFRAMES, dropdown_selection, institutions, date_range, machines):
-    """Given a list of filter inputs, returns a filtered dataframe. Removes
-    sensitive data if iframed into public view."""
-    # print(dropdown_selection)
+    """Given a list of filter inputs, returns a filtered dataframe."""
     df = DATAFRAMES[dropdown_selection]
-    # print(df)
-
-    # if iframed==True:
-    #     for column in PROTECTED_COLUMNS:
-    #         try:
-    #             df = df.drop(columns=column)
-    #         except: # Throws error if column name isn't in specific worksheets
-    #             continue
-
     df = filter_df(df, institutions, date_range, machines)
-
     return df
 
 
@@ -209,7 +196,7 @@ def get_totals(DATAFRAMES, checklist, date_range, fiscal_year, worksheets, machi
         for group in checklist:
             try:
                 avgs.append(inst_grps.get_group((group,))["Date"].value_counts().mean())
-            except:
+            except KeyError:
                 continue
         count = int(sum(avgs))
 
@@ -265,35 +252,12 @@ def calc_monthly_avgs(df, institutions):
                     df_with_avgs["Resource"].append(machine)
                     df_with_avgs["Count"].append(round(current_count))
                     df_with_avgs["Date"].append(date)
-        except:
+        except KeyError:
             continue  # For some date ranges, even if an institution is checked, it doesn't appear in the data, throwing an error
     df_with_avgs = pd.DataFrame(df_with_avgs)
     df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
     logging.debug(df_with_avgs.to_string())
     return df_with_avgs
-
-
-def calc_node_hours(df):
-    for i in range(len(df)):
-        df.loc[i, "SU's Charged"] = round(
-            df.loc[i, "SU's Charged"] * NODE_HOURS_MODIFIER[df.loc[i, "Resource"]]
-        )
-    return df
-
-
-def calc_node_fy_sums(df, institutions):
-    inst_grps = df.groupby(["Institution"])
-    df_with_avgs = {"Institution": [], "Date": [], "SU's Charged": []}
-    for group in institutions:
-        try:
-            sum = inst_grps.get_group((group,))["SU's Charged"].sum()
-            df_with_avgs["Institution"].append(group)
-            df_with_avgs["SU's Charged"].append(round(sum))
-            df_with_avgs["Date"].append("FYTD SUM")
-        except:
-            continue  # For some date ranges, even if an institution is checked, it doesn't appear in the data, throwing an error
-    combined_df = pd.concat([df, pd.DataFrame(df_with_avgs)])
-    return combined_df
 
 
 def calc_corral_monthly_sums(df, institutions):
@@ -308,7 +272,7 @@ def calc_corral_monthly_sums(df, institutions):
                 df_with_avgs["Institution"].append(inst)
                 df_with_avgs["Storage Granted (TB)"].append(round(monthly_sum))
                 df_with_avgs["Date"].append(date)
-        except:
+        except KeyError:
             continue
     df_with_avgs = pd.DataFrame(df_with_avgs)
     df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
@@ -322,7 +286,7 @@ def add_peaks_to_corral_df(df, institutions):
         try:
             peak = inst_grps.get_group((inst,))["Storage Granted (TB)"].max()
             df.loc[len(df.index)] = [inst, "PEAK", peak]
-        except:
+        except KeyError:
             continue
     return df
 
@@ -350,7 +314,7 @@ def calc_node_monthly_sums(df, institutions):
                     df_with_avgs["Resource"].append(machine)
                     df_with_avgs["SU's Charged"].append(round(monthly_sum))
                     df_with_avgs["Date"].append(date)
-        except:
+        except KeyError:
             continue
     df_with_avgs = pd.DataFrame(df_with_avgs)
     df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
@@ -371,9 +335,9 @@ def create_fy_options():
         year = date.split("-")[0]
         month = date.split("-")[1]
         if month in start_months:
-            option = f"{year}-{int(year)+1}"
+            option = f"{year}-{int(year) + 1}"
         elif month in end_months:
-            option = f"{int(year)-1}-{year}"
+            option = f"{int(year) - 1}-{year}"
         if option not in fy_options:
             fy_options.append(option)
     fy_options.sort()
@@ -381,9 +345,7 @@ def create_fy_options():
     return fy_options
 
 
-def get_allocation_totals(
-    DATAFRAMES, checklist, date_range, fiscal_year, worksheets, machines
-):
+def get_allocation_totals(DATAFRAMES, checklist, date_range, worksheets, machines):
     totals = {}
     for worksheet in worksheets:
         df = DATAFRAMES[worksheet]
@@ -397,7 +359,7 @@ def get_allocation_totals(
         for group in checklist:
             try:
                 avgs.append(inst_grps.get_group((group,))["Date"].value_counts().mean())
-            except:
+            except KeyError:
                 continue
         count = int(sum(avgs))
 

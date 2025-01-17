@@ -1,24 +1,25 @@
-import pandas as pd
-from flask_login import current_user
-import dash
-from dash import dcc, Output, Input, html, State, ctx
-from src.data_functions import (
-    create_fy_options,
-    merge_workbooks,
-    get_date_list,
-    select_df,
-    get_totals,
-)
-from src.ui_functions import (
-    make_df_download_button,
-    make_summary_panel,
-    make_data_table,
-    make_bar_graph,
-    make_filters,
-)
 import logging
 
+import dash
+import pandas as pd
+from dash import Input, Output, State, ctx, dcc, html
+from flask_login import current_user
+
 from config import settings
+from src.data_functions import (
+    create_fy_options,
+    get_date_list,
+    get_totals,
+    merge_workbooks,
+    select_df,
+)
+from src.ui_functions import (
+    make_bar_graph,
+    make_data_table,
+    make_df_download_button,
+    make_filters,
+    make_summary_panel,
+)
 
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
 logging.basicConfig(level=LOGGING_LEVEL)
@@ -158,7 +159,7 @@ def update_figs(
             for i in range(int(monthly_avg)):
                 df_with_avgs["Institution"].append(group)
                 df_with_avgs["Date"].append("AVG")
-        except:
+        except KeyError:
             continue  # For some date ranges, even if an institution is checked, it doesn't appear in the data, throwing an error
     combined_df = pd.concat([df, pd.DataFrame(df_with_avgs)])
 

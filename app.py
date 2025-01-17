@@ -1,20 +1,20 @@
-import dash
-
-from dash import html, dcc, Input, Output, State, no_update
-import logging
-from src.data_functions import create_fy_options, get_marks
 import json
+import logging
 import os
+
+import dash
+from dash import Input, Output, State, dcc, html, no_update
 from dotenv import load_dotenv
 from flask import Flask, session
 from flask_login import (
-    login_user,
     LoginManager,
     UserMixin,
     current_user,
+    login_user,
 )
 
 from config import settings
+from src.data_functions import create_fy_options, get_marks
 
 load_dotenv()
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
@@ -31,15 +31,20 @@ app = dash.Dash(
     prevent_initial_callbacks="initial_duplicate",
     suppress_callback_exceptions=True,
     title="UTRC Dashboard",
-    # include_pages_meta=False,
 )
 
 ACCOUNTS = json.loads(os.getenv("ACCOUNTS"))
 
+# Security settings
 server.config.update(SECRET_KEY=os.getenv("SECRET_KEY"))
+server.config["SESSION_COOKIE_SECURE"] = True
+server.config["SESSION_HTTPONLY"] = True
+
+# Login configuration
 login_manager = LoginManager()
 login_manager.init_app(server)
 login_manager.login_view = "/login"
+login_manager.session_protection = "strong"
 
 
 class User(UserMixin):
@@ -77,7 +82,6 @@ app.layout = html.Div(
                                                     className="navbar-toggler-icon"
                                                 )
                                             ],
-                                            # className="navbar-toggler collapsed",
                                             className="hamburger-button",
                                             id="hamburger-button",
                                         ),
@@ -118,7 +122,6 @@ app.layout = html.Div(
                                         ],
                                         className="s-cms-nav navbar-nav mr-auto",
                                     ),
-                                    # className="navbar-collapse collapse menu-links",
                                     className="menu-links",
                                     id="navbar-links",
                                 ),

@@ -1,6 +1,5 @@
 import dash
-from dash import html, dcc
-
+from dash import dcc, html
 
 dash.register_page(__name__)
 

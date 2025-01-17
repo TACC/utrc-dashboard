@@ -14,14 +14,7 @@ Installation Instructions
 
 2. In ./assets/data/monthly reports, add all monthly reports. Reports should follow the following naming convention: utrc_report_YYYY-MM-DD_to_YYYY-MM-DD.xlsx (e.g. utrc_report_2019-12-01_to_2020-01-01.xlsx).
 
-3. In the root directory, add a .env file with the values `SECRET_KEY` and `ACCOUNTS`. `SECRET_KEY` should be a securely generated string. `ACCOUNTS` should contain a single json dictionary with usernames as keys and passwords as values:
-
-   ```
-   {
-       "username1": "password1",
-       "username2": "password2"
-   }
-   ```
+3. In the root directory, add a .env file with the values `SECRET_KEY` and `ACCOUNTS`. `SECRET_KEY` should be a securely generated string. `ACCOUNTS` should contain a single json dictionary with usernames as keys and passwords as values. See `.env.sample` for an example.
 
 4. Setup the Nginx web server configuration file to reverse proxy at port 8050.
 

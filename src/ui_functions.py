@@ -1,7 +1,9 @@
 import copy
-from dash import html, dcc, dash_table
+
 import plotly.express as px
-from src.data_functions import get_all_months, create_fy_options
+from dash import dash_table, dcc, html
+
+from src.data_functions import create_fy_options, get_all_months
 
 FY_OPTIONS = create_fy_options()
 
@@ -377,6 +379,24 @@ def make_data_table(df, sort_by=None):
 
 def make_bar_graph(df, title, dates, yaxis, ytitle=None, hover=None):
     colors = make_color_map(dates)
+    category_orders = {
+        "Institution": [
+            "UTAus",
+            "UTA",
+            "UTD",
+            "UTEP",
+            "UTPB",
+            "UTRGV",
+            "UTSA",
+            "UTT",
+            "UTHSC-H",
+            "UTHSC-SA",
+            "UTMB",
+            "UTMDA",
+            "UTSW",
+            "UTSYS",
+        ]
+    }
     if not yaxis:
         fig = px.histogram(
             data_frame=df,
@@ -385,24 +405,7 @@ def make_bar_graph(df, title, dates, yaxis, ytitle=None, hover=None):
             barmode="group",
             color_discrete_map=colors,
             text_auto=True,
-            category_orders={
-                "Institution": [
-                    "UTAus",
-                    "UTA",
-                    "UTD",
-                    "UTEP",
-                    "UTPB",
-                    "UTRGV",
-                    "UTSA",
-                    "UTT",
-                    "UTHSC-H",
-                    "UTHSC-SA",
-                    "UTMB",
-                    "UTMDA",
-                    "UTSW",
-                    "UTSYS",
-                ]
-            },
+            category_orders=category_orders,
         )
     else:
         fig = px.bar(
@@ -414,24 +417,7 @@ def make_bar_graph(df, title, dates, yaxis, ytitle=None, hover=None):
             color_discrete_map=colors,
             text_auto=True,
             hover_data=[hover],
-            category_orders={
-                "Institution": [
-                    "UTAus",
-                    "UTA",
-                    "UTD",
-                    "UTEP",
-                    "UTPB",
-                    "UTRGV",
-                    "UTSA",
-                    "UTT",
-                    "UTHSC-H",
-                    "UTHSC-SA",
-                    "UTMB",
-                    "UTMDA",
-                    "UTSW",
-                    "UTSYS",
-                ]
-            },
+            category_orders=category_orders,
         )
     if ytitle:
         fig.update_layout(yaxis_title=ytitle)

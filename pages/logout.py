@@ -1,6 +1,6 @@
 import dash
-from dash import html, dcc, callback, Output, Input, no_update
-from flask_login import logout_user, current_user
+from dash import Input, Output, callback, dcc, html, no_update
+from flask_login import current_user, logout_user
 
 dash.register_page(__name__)
 

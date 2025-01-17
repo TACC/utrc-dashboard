@@ -1,24 +1,25 @@
-from flask_login import current_user
-import dash
-from dash import dcc, Output, Input, html, State, ctx
-from src.data_functions import (
-    create_fy_options,
-    merge_workbooks,
-    get_date_list,
-    select_df,
-    calc_monthly_avgs,
-    get_allocation_totals,
-)
-from src.ui_functions import (
-    make_df_download_button,
-    make_summary_panel,
-    make_data_table,
-    make_bar_graph,
-    make_filters,
-)
 import logging
 
+import dash
+from dash import Input, Output, State, ctx, dcc, html
+from flask_login import current_user
+
 from config import settings
+from src.data_functions import (
+    calc_monthly_avgs,
+    create_fy_options,
+    get_allocation_totals,
+    get_date_list,
+    merge_workbooks,
+    select_df,
+)
+from src.ui_functions import (
+    make_bar_graph,
+    make_data_table,
+    make_df_download_button,
+    make_filters,
+    make_summary_panel,
+)
 
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
 logging.basicConfig(level=LOGGING_LEVEL)
@@ -72,7 +73,7 @@ layout = html.Div(
     State("end_date_dd", "value"),
     prevent_initial_call=True,
 )
-def func(
+def deliver_download(
     n_clicks,
     dropdown,
     checklist,
@@ -118,7 +119,6 @@ def update_figs(
     logging.debug(f"Callback trigger id: {ctx.triggered_id}")
     dates = get_date_list(start_date, end_date)
     df = select_df(DATAFRAMES, dropdown, institutions, dates, machines)
-
     if not current_user.is_authenticated:
         table = html.Div(
             [
@@ -149,10 +149,10 @@ def update_figs(
         DATAFRAMES,
         institutions,
         dates,
-        "22-23",
         ["utrc_active_allocations", "utrc_current_allocations"],
         machines,
     )
+
     totals["total_allocations"] = (
         totals["idle_allocations"] + totals["active_allocations"]
     )

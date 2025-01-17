@@ -1,24 +1,25 @@
-from flask_login import current_user
-import dash
-from dash import dcc, Output, Input, html, State, ctx
-from src.data_functions import (
-    merge_workbooks,
-    get_date_list,
-    select_df,
-    calc_node_monthly_sums,
-    calc_corral_monthly_sums,
-    calc_corral_total,
-)
-from src.ui_functions import (
-    make_df_download_button,
-    make_summary_panel,
-    make_data_table,
-    make_bar_graph,
-    make_filters,
-)
 import logging
 
+import dash
+from dash import Input, Output, State, ctx, dcc, html
+from flask_login import current_user
+
 from config import settings
+from src.data_functions import (
+    calc_corral_monthly_sums,
+    calc_corral_total,
+    calc_node_monthly_sums,
+    get_date_list,
+    merge_workbooks,
+    select_df,
+)
+from src.ui_functions import (
+    make_bar_graph,
+    make_data_table,
+    make_df_download_button,
+    make_filters,
+    make_summary_panel,
+)
 
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
 logging.basicConfig(level=LOGGING_LEVEL)
@@ -142,7 +143,9 @@ def update_figs(
         dates,
         machines,
     )
+    print(sus_df)
     sus_df_calculated = calc_node_monthly_sums(sus_df, institutions)
+    print(sus_df_calculated)
     total_sus = int(sus_df["SU's Charged"].sum())
 
     node_graph = make_bar_graph(
