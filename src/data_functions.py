@@ -183,7 +183,7 @@ def filter_by_machine(df, machines):
     return df
 
 
-def get_totals(DATAFRAMES, checklist, date_range, fiscal_year, worksheets, machines):
+def get_totals(DATAFRAMES, checklist, date_range, worksheets, machines):
     """Given a dictionary of dataframes, a checklist of selected universities,
     and a date range of selected months, returns a dictionary of total, active
     and idle users in the last selected month."""
@@ -291,8 +291,8 @@ def add_peaks_to_corral_df(df, institutions):
     return df
 
 
-def calc_corral_total(df, institutions):
-    df_with_peaks = calc_corral_monthly_sums(df, institutions)
+def calc_corral_total(df_with_peaks):
+    # df_with_peaks is calculated by calc_corral_monthly_sums()
     total = df_with_peaks[df_with_peaks["Date"] == "PEAK"]["Storage Granted (TB)"].sum()
     logging.debug(df_with_peaks[df_with_peaks["Date"] == "PEAK"].to_string())
     return total

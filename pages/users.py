@@ -166,12 +166,10 @@ def update_figs(
     bargraph = make_bar_graph(
         combined_df, "Users per Institution", dates, None, "Number of Users"
     )
-
     totals = get_totals(
         DATAFRAMES,
         checklist,
         dates,
-        "22-23",
         ["utrc_individual_user_hpc_usage", "utrc_idle_users"],
         machines,
     )

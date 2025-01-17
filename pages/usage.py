@@ -143,9 +143,7 @@ def update_figs(
         dates,
         machines,
     )
-    print(sus_df)
     sus_df_calculated = calc_node_monthly_sums(sus_df, institutions)
-    print(sus_df_calculated)
     total_sus = int(sus_df["SU's Charged"].sum())
 
     node_graph = make_bar_graph(
@@ -160,7 +158,7 @@ def update_figs(
         DATAFRAMES, "utrc_corral_usage", institutions, dates, machines
     )
     corral_df_calculated = calc_corral_monthly_sums(corral_df, institutions)
-    total_storage = calc_corral_total(corral_df, institutions)
+    total_storage = calc_corral_total(corral_df_calculated)
 
     corral_graph = make_bar_graph(
         corral_df_calculated, "Corral Usage", dates, "Storage Granted (TB)"

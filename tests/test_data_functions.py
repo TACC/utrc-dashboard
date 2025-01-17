@@ -8,10 +8,12 @@ from src.data_functions import (
     create_fy_options,
     get_allocation_totals,
     get_date_list,
+    get_totals,
     select_df,
 )
 
 
+# General purpose functions
 def test_create_fy_options():
     # This will break whenever a new fiscal year is added to the data
     t1 = create_fy_options()
@@ -152,6 +154,7 @@ def test_select_df():
     assert t2.equals(r2)
 
 
+# Functions that are used in allocations.py
 def test_calc_monthly_avgs():
     # df for t1
     d1 = {
@@ -297,6 +300,254 @@ def test_get_allocation_totals():
         ["UTAus", "UTD"],
         ["23-01", "23-12"],
         ["utrc_active_allocations", "utrc_current_allocations"],
+        ["Lonestar6", "Frontera"],
+    )
+    assert t1 == r1
+
+
+# Functions that are used in usage.py
+def test_calc_node_monthly_sums():
+    d1 = {
+        "Institution": ["UTAus", "UTAus", "UTAus", "UTAus", "UTPB", "UTRGV", "UTD"],
+        "Resource": [
+            "Lonestar6",
+            "Frontera",
+            "Lonestar6",
+            "Stampede4",
+            "Lonestar5",
+            "Maverick3",
+            "Jetstream",
+        ],
+        "Type": ["VIS", "HPC", "VIS", "HPC", "VIS", "HPC", "VIS"],
+        "SU's Charged": [1, 2, 3, 4, 5, 6, 7],
+        "Last Name": ["Smith", "Doe", "Garcia", "Nguyen", "Brown", "Lee", "Johnson"],
+        "First Name": ["John", "Jill", "Jose", "James", "Joe", "Jade", "Janice"],
+        "Email": [
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+        ],
+        "Project Name": ["name", "name", "name", "name", "name", "name", "name"],
+        "Title": [
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+        ],
+        "Project Type": [
+            "Partner",
+            "Research",
+            "Partner",
+            "Research",
+            "Partner",
+            "Research",
+            "Research",
+        ],
+        "Job Count": [1, 2, 3, 4, 5, 6, 7],
+        "User Count": [1, 2, 3, 4, 5, 6, 7],
+        "Login": ["uname", "uname", "uname", "uname", "uname", "uname", "uname"],
+        "New PI?": [None, None, None, None, None, None, None],
+        "Date": ["23-01", "23-12", "23-12", "23-12", "23-12", "23-12", "23-12"],
+    }
+    df1 = pd.DataFrame(data=d1)
+    d2 = {
+        "Institution": ["UTAus", "UTAus", "UTAus", "UTAus", "UTD"],
+        "Resource": [
+            "Lonestar6",
+            "Frontera",
+            "Lonestar6",
+            "Stampede4",
+            "Jetstream",
+        ],
+        "Date": ["23-01", "23-12", "23-12", "23-12", "23-12"],
+        "SU's Charged": [1, 2, 3, 4, 7],
+    }
+    r1 = pd.DataFrame(data=d2)
+    t1 = calc_node_monthly_sums(df1, ["UTAus", "UTD"])
+    assert t1.equals(r1)
+
+
+def test_calc_corral_monthly_sums():
+    d1 = {
+        "Institution": ["UTAus", "UTAus", "UTAus", "UTAus", "UTPB", "UTRGV", "UTD"],
+        "Storage Granted (Gb)": [x * 1000 for x in range(7)],
+        "Last Name": ["Smith", "Doe", "Garcia", "Nguyen", "Brown", "Lee", "Johnson"],
+        "First Name": ["John", "Jill", "Jose", "James", "Joe", "Jade", "Janice"],
+        "Name": [
+            "Corral2",
+            "Corral-Protected",
+            "Corral2",
+            "Corral-Protected",
+            "Corral2",
+            "Corral-Protected",
+            "Corral2",
+        ],
+        "Email": [
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+        ],
+        "Project Name": ["name", "name", "name", "name", "name", "name", "name"],
+        "Title": [
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+        ],
+        "Project Type": [
+            "Partner",
+            "Research",
+            "Partner",
+            "Research",
+            "Partner",
+            "Research",
+            "Research",
+        ],
+        "Login": ["uname", "uname", "uname", "uname", "uname", "uname", "uname"],
+        "New PI?": [None, None, None, None, None, None, None],
+        "Start Date": ["22-01", "22-03", "23-01", "23-01", "23-01", "23-01", "23-01"],
+        "End Date": ["23-12", "23-12", "23-12", "23-12", "23-12", "23-12", "23-12"],
+        "Status": [
+            "Active",
+            "Inactive",
+            "Active",
+            "Active",
+            "Active",
+            "Active",
+            "Active",
+        ],
+        "Date": ["23-01", "23-02", "23-02", "23-03", "23-12", "23-12", "23-12"],
+    }
+    df1 = pd.DataFrame(data=d1)
+    d2 = {
+        "Institution": ["UTAus", "UTAus", "UTAus", "UTAus"],
+        "Date": ["23-01", "23-02", "23-03", "PEAK"],
+        "Storage Granted (TB)": [0, 3, 3, 3],
+    }
+    r1 = pd.DataFrame(data=d2)
+    t1 = calc_corral_monthly_sums(df1, ["UTAus"])
+    assert t1.equals(r1)
+
+
+def test_calc_corral_total():
+    # same as result of test_calc_corral_monthly_sums
+    d1 = {
+        "Institution": ["UTAus", "UTAus", "UTAus", "UTAus"],
+        "Date": ["23-01", "23-02", "23-03", "PEAK"],
+        "Storage Granted (TB)": [0, 3, 3, 3],
+    }
+    df1 = pd.DataFrame(data=d1)
+    t1 = calc_corral_total(df1)
+    assert t1 == 3
+
+
+# Functions used in users.py
+def test_get_totals():
+    d1 = {
+        "Institution": ["UTAus", "UTAus", "UTAus", "UTAus", "UTPB", "UTRGV", "UTD"],
+        "Resource": [
+            "Lonestar6",
+            "Frontera",
+            "Lonestar6",
+            "Stampede4",
+            "Lonestar5",
+            "Maverick3",
+            "Jetstream",
+        ],
+        "Type": ["VIS", "HPC", "VIS", "HPC", "VIS", "HPC", "VIS"],
+        "Last Name": ["Smith", "Doe", "Garcia", "Nguyen", "Brown", "Lee", "Johnson"],
+        "First Name": ["John", "Jill", "Jose", "James", "Joe", "Jade", "Janice"],
+        "Login": ["uname", "uname", "uname", "uname", "uname", "uname", "uname"],
+        "Email": [
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+        ],
+        "Project Name": ["name", "name", "name", "name", "name", "name", "name"],
+        "Title": [
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+        ],
+        "Project Type": [
+            "Partner",
+            "Research",
+            "Partner",
+            "Research",
+            "Partner",
+            "Research",
+            "Research",
+        ],
+        "Job Count": [x * 10 for x in range(7)],
+        "Date": ["23-01", "23-02", "23-02", "23-03", "23-12", "23-12", "23-12"],
+    }
+
+    d2 = {
+        "Institution": ["UTAus", "UTAus", "UTAus", "UTAus", "UTPB", "UTRGV", "UTD"],
+        "Last Name": ["Smith", "Doe", "Garcia", "Nguyen", "Brown", "Lee", "Johnson"],
+        "First Name": ["John", "Jill", "Jose", "James", "Joe", "Jade", "Janice"],
+        "Email": [
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+        ],
+        "Login": ["uname", "uname", "uname", "uname", "uname", "uname", "uname"],
+        "Account Type": [
+            "Individual",
+            "Individual",
+            "Individual",
+            "Service",
+            "Individual",
+            "Individual",
+            "Individual",
+        ],
+        "Account Status": [
+            "Active",
+            "Deactivated",
+            "Active",
+            "Active",
+            "Active",
+            "Active",
+            "Active",
+        ],
+        "Date": ["23-01", "23-02", "23-02", "23-03", "23-12", "23-12", "23-12"],
+    }
+    df1 = pd.DataFrame(data=d1)
+    df2 = pd.DataFrame(data=d2)
+    DATAFRAMES = {"utrc_individual_user_hpc_usage": df1, "utrc_idle_users": df2}
+
+    r1 = {"active_users": 1, "idle_users": 1}
+    t1 = get_totals(
+        DATAFRAMES,
+        ["UTAus", "UTD"],
+        ["23-01", "23-02"],
+        ["utrc_individual_user_hpc_usage", "utrc_idle_users"],
         ["Lonestar6", "Frontera"],
     )
     assert t1 == r1
