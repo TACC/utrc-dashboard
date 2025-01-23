@@ -240,6 +240,13 @@ span.column-header-name {
     justify-content: center;
 }
 
+footer {
+    margin: 2rem 1rem 0rem 1rem;
+    padding-bottom: 2rem;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
 /* media query that swaps wide nav for hamburger nav */
 
 @media (max-width: 768px) {

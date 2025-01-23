@@ -15,6 +15,7 @@ from flask_login import (
 
 from config import settings
 from src.data_functions import create_fy_options, get_marks
+from src.version import version
 
 load_dotenv()
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
@@ -34,6 +35,8 @@ app = dash.Dash(
 )
 
 ACCOUNTS = json.loads(os.getenv("ACCOUNTS"))
+
+footer_txt = "\u00a9" + f" 2025, Texas Advanced Computing Center. {version}"
 
 # Security settings
 server.config.update(SECRET_KEY=os.getenv("SECRET_KEY"))
@@ -148,6 +151,7 @@ app.layout = html.Div(
             ],
             className="body",
         ),
+        html.Footer(footer_txt, className="page-footer"),
     ]
 )
 
