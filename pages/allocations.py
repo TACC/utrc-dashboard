@@ -1,110 +1,166 @@
-import pandas as pd
-import plotly.express as px
-
-import dash
-from dash import dcc, Output, Input, html, dash_table, ctx
-from src.scripts import *
 import logging
 
+import dash
+from dash import Input, Output, State, ctx, dcc, html
+from flask_login import current_user
+
 from config import settings
-LOGGING_LEVEL = settings['LOGGING_LEVEL']
+from src.data_functions import (
+    calc_monthly_avgs,
+    create_fy_options,
+    get_allocation_totals,
+    get_date_list,
+    merge_workbooks,
+    select_df,
+)
+from src.ui_functions import (
+    make_bar_graph,
+    make_data_table,
+    make_df_download_button,
+    make_filters,
+    make_summary_panel,
+)
+
+LOGGING_LEVEL = settings["LOGGING_LEVEL"]
 logging.basicConfig(level=LOGGING_LEVEL)
 
 dash.register_page(__name__)
 app = dash.get_app()
 
 # INCORPORATE DATA
-WORKSHEETS = ['utrc_active_allocations', 'utrc_current_allocations', 'utrc_new_allocation_requests']
+WORKSHEETS = [
+    "utrc_active_allocations",
+    "utrc_current_allocations",
+    "utrc_new_allocation_requests",
+]
 FY_OPTIONS = create_fy_options()
-logging.debug(f'FY Options: {FY_OPTIONS}')
+logging.debug(f"FY Options: {FY_OPTIONS}")
 
 DATAFRAMES = merge_workbooks(WORKSHEETS)
 
-layout=html.Div([
-    # TOTALS
-    html.Div([
-            html.Div([html.Div(["Avg Total Allocations"], className='counter_title'), html.Div([0], id='total_allocations')], className="total_counters"),
-            html.Div([html.Div(["Avg Active"], className='counter_title'), html.Div([0], id='active_allocations')], className="total_counters"),
-            html.Div([html.Div(["Avg Idle"], className='counter_title'), html.Div([0], id="idle_allocations")], className="total_counters"),
-        ], id='total_counters_wrapper'),
-    # END TOTALS
+dd_options = [
+    {"label": "Active Allocations", "value": "utrc_active_allocations"},
+    {"label": "Current Allocations", "value": "utrc_current_allocations"},
+    {"label": "New Allocations", "value": "utrc_new_allocation_requests"},
+]
 
-    # DROPDOWN
-    html.Div([
-        dcc.Dropdown(id='dropdown',
-                        options=[
-                        {'label': 'Active Allocations', 'value': 'utrc_active_allocations'},
-                        {'label': 'Current Allocations', 'value': 'utrc_current_allocations'},
-                        {'label': 'New Allocations', 'value': 'utrc_new_allocation_requests'}
-                    ],
-                        value='utrc_active_allocations',
-                        clearable=False
-                ),
-        ],),
-    # END DROPDOWN
 
-    html.Div(children=[], id='allocations_bargraph', className='my_graphs'),
+layout = html.Div(
+    [
+        html.H1("Allocations", className="page-title"),
+        make_filters("Allocations:", dd_options, "utrc_active_allocations"),
+        # TOTALS
+        make_summary_panel(
+            ["Average Total Allocations", "Average Active", "Average Idle"],
+            ["total_allocations", "active_allocations", "idle_allocations"],
+        ),
+        # END TOTALS
+        html.Div(children=[], id="allocations_bargraph", className="my_graphs"),
+        html.Div(children=[], id="allocations_table", className="my_tables"),
+        html.Hr(),
+        dcc.Location(id="url"),
+    ],
+)
 
-    html.Div(children=[], id='allocations_table', className='my_tables'),
 
-    dcc.Location(id='url'),
-
-], className='body')
+@app.callback(
+    Output("download-allocations-df", "data"),
+    Input("btn-download", "n_clicks"),
+    State("dropdown", "value"),
+    State("select_institutions_dd", "value"),
+    State("select_machine_dd", "value"),
+    State("start_date_dd", "value"),
+    State("end_date_dd", "value"),
+    prevent_initial_call=True,
+)
+def deliver_download(
+    n_clicks,
+    dropdown,
+    checklist,
+    machines,
+    start_date,
+    end_date,
+):
+    if not current_user.is_authenticated:
+        return ""
+    else:
+        # prepare df
+        dates = get_date_list(start_date, end_date)
+        df = select_df(
+            DATAFRAMES,
+            dropdown,
+            checklist,
+            dates,
+            machines,
+        )
+        return dcc.send_data_frame(df.to_csv, "utrc_data.csv")
 
 
 # ADD INTERACTIVITY THROUGH CALLBACKS
 @app.callback(
-    Output('allocations_table', 'children'),
-    Output('allocations_bargraph', 'children'),
-    Output('total_allocations', 'children'),
-    Output('active_allocations', 'children'),
-    Output('idle_allocations', 'children'),
-    Input('dropdown', 'value'),
-    Input('select_institutions_checklist', 'value'),
-    Input('date_filter', 'value'),
-    Input('year_radio_dcc', 'value'),
-    Input('select_machine_checklist', 'value')
+    Output("allocations_table", "children"),
+    Output("allocations_bargraph", "children"),
+    Output("total_allocations", "children"),
+    Output("active_allocations", "children"),
+    Output("idle_allocations", "children"),
+    Input("dropdown", "value"),
+    Input("select_institutions_dd", "value"),
+    Input("select_machine_dd", "value"),
+    Input("start_date_dd", "value"),
+    Input("end_date_dd", "value"),
 )
-def update_figs(dropdown, institutions, date_range, fiscal_year, machines):
-    logging.debug(f'Callback trigger id: {ctx.triggered_id}')
-    marks = get_marks(fiscal_year)
-    if ctx.triggered_id == 'year_radio_dcc':
-        df = select_df(DATAFRAMES, dropdown, institutions, [0, len(marks)], fiscal_year, machines)
+def update_figs(
+    dropdown,
+    institutions,
+    machines,
+    start_date,
+    end_date,
+):
+    logging.debug(f"Callback trigger id: {ctx.triggered_id}")
+    dates = get_date_list(start_date, end_date)
+    df = select_df(DATAFRAMES, dropdown, institutions, dates, machines)
+    if not current_user.is_authenticated:
+        table = html.Div(
+            [
+                "Please ",
+                dcc.Link("login", href="/login"),
+                " to view and download more data",
+            ],
+            className="login-note",
+        )
     else:
-        df = select_df(DATAFRAMES, dropdown, institutions, date_range, fiscal_year, machines)
-
-    table = dash_table.DataTable(id='datatable_id',
-                                 data=df.to_dict('records'),
-                                 columns=[{"name": i, "id": i} for i in df.columns],
-                                 fixed_rows={'headers': True},
-                                 page_size=200,
-                                 style_header={'backgroundColor': '#222222', 'text_align': 'center'},
-                                 style_cell={'text_align': 'left'},
-                                 style_data_conditional=[{
-                                                    'if': {'row_index': 'odd'},
-                                                    'backgroundColor': '#f4f4f4',
-                                                }],
-                                 style_cell_conditional=create_conditional_style(df),
-                                 sort_action='native',
-                                 sort_by=[{'column_id': 'SU\'s Charged', 'direction': 'desc'}],
-                                 filter_action='native',
-                                 export_format='xlsx'
-                            )
+        table = [
+            make_data_table(df, [{"column_id": "SU's Charged", "direction": "desc"}]),
+            make_df_download_button("allocations"),
+        ]
 
     df_with_avgs = calc_monthly_avgs(df, institutions)
-    bargraph = dcc.Graph(figure=px.bar(
-                         data_frame=df_with_avgs,
-                         x="Institution",
-                         y='Count',
-                         color='Date',
-                         barmode='group',
-                         text_auto=True,
-                         hover_data=['Resource'],
-                         category_orders={'Institution': ['UTAus', 'UTA', 'UTD', 'UTEP', 'UTPB', 'UTRGV', 'UTSA', 'UTT', 'UTHSC-H', 'UTHSC-SA', 'UTMB', 'UTMDA', 'UTSW', 'UTSYS']}
-                    ).update_layout(yaxis_title="Number of Allocations"))
 
-    
-    totals = get_allocation_totals(DATAFRAMES, institutions, date_range, fiscal_year, ['utrc_active_allocations', 'utrc_current_allocations'], machines)
-    totals['total_allocations'] = totals['idle_allocations'] + totals['active_allocations']
+    bargraph = make_bar_graph(
+        df_with_avgs,
+        "Allocations per Institution",
+        dates,
+        "Count",
+        "Number of Allocations",
+        "Resource",
+    )
 
-    return table, bargraph, totals['total_allocations'], totals['active_allocations'], totals['idle_allocations']
+    totals = get_allocation_totals(
+        DATAFRAMES,
+        institutions,
+        dates,
+        ["utrc_active_allocations", "utrc_current_allocations"],
+        machines,
+    )
+
+    totals["total_allocations"] = (
+        totals["idle_allocations"] + totals["active_allocations"]
+    )
+
+    return (
+        table,
+        bargraph,
+        totals["total_allocations"],
+        totals["active_allocations"],
+        totals["idle_allocations"],
+    )

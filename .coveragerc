@@ -1,0 +1,11 @@
+[run]
+omit = 
+  tests/*
+  venv/*
+  data/*
+
+[report]
+omit = 
+  tests/*
+  venv/*
+  data/*
