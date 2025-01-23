@@ -240,5 +240,4 @@ INSTITUTIONS_MENU = [
     "UTMB",
     "UTMDA",
     "UTSW",
-    "UTSYS",
 ]
