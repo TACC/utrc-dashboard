@@ -214,3 +214,31 @@ WORKSHEETS_RM_DUPLICATES = [
     "utrc_new_users",
     "utrc_idle_users",
 ]
+
+MACHINES_MENU = [
+    "All",
+    "Lonestar6",
+    "Frontera",
+    "Jetstream",
+    "Stampede2",
+    "Vista",
+    "Stampede3",
+]
+
+INSTITUTIONS_MENU = [
+    "All",
+    "UTAus",
+    "UTA",
+    "UTD",
+    "UTEP",
+    "UTPB",
+    "UTRGV",
+    "UTSA",
+    "UTT",
+    "UTHSC-H",
+    "UTHSC-SA",
+    "UTMB",
+    "UTMDA",
+    "UTSW",
+    "UTSYS",
+]

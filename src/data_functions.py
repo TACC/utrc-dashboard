@@ -111,10 +111,12 @@ def initialize_df(workbook_path, WORKSHEETS):
 
 
 def merge_workbooks(WORKSHEETS):
+    logging.info(f"Processing workbooks for {', '.join(WORKSHEETS)}")
     workbook_paths = get_workbook_paths(REPORTS_PATH)
     for index, path in enumerate(workbook_paths):
         workbook = initialize_df(path, WORKSHEETS)
         filename = path.split("/")[-1]
+        logging.info(f"Processing {filename}")
         workbook = append_date_to_worksheets(workbook, filename)
 
         if index == 0:
@@ -122,7 +124,7 @@ def merge_workbooks(WORKSHEETS):
         else:
             for sheet in WORKSHEETS:
                 dict_of_dfs[sheet] = pd.concat([dict_of_dfs[sheet], workbook[sheet]])
-
+    logging.info(f"Done processing workbooks for {', '.join(WORKSHEETS)}")
     return dict_of_dfs
 
 

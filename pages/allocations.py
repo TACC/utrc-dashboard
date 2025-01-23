@@ -10,7 +10,6 @@ from src.data_functions import (
     create_fy_options,
     get_allocation_totals,
     get_date_list,
-    merge_workbooks,
     select_df,
 )
 from src.ui_functions import (
@@ -20,6 +19,7 @@ from src.ui_functions import (
     make_filters,
     make_summary_panel,
 )
+from src.startup import DATAFRAMES
 
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
 logging.basicConfig(level=LOGGING_LEVEL)
@@ -27,16 +27,14 @@ logging.basicConfig(level=LOGGING_LEVEL)
 dash.register_page(__name__)
 app = dash.get_app()
 
-# INCORPORATE DATA
-WORKSHEETS = [
-    "utrc_active_allocations",
-    "utrc_current_allocations",
-    "utrc_new_allocation_requests",
-]
 FY_OPTIONS = create_fy_options()
 logging.debug(f"FY Options: {FY_OPTIONS}")
 
-DATAFRAMES = merge_workbooks(WORKSHEETS)
+ALLOC_DATAFRAMES = {
+    "utrc_active_allocations": DATAFRAMES["utrc_active_allocations"],
+    "utrc_current_allocations": DATAFRAMES["utrc_current_allocations"],
+    "utrc_new_allocation_requests": DATAFRAMES["utrc_new_allocation_requests"],
+}
 
 dd_options = [
     {"label": "Active Allocations", "value": "utrc_active_allocations"},
@@ -87,7 +85,7 @@ def deliver_download(
         # prepare df
         dates = get_date_list(start_date, end_date)
         df = select_df(
-            DATAFRAMES,
+            ALLOC_DATAFRAMES,
             dropdown,
             checklist,
             dates,
@@ -118,7 +116,7 @@ def update_figs(
 ):
     logging.debug(f"Callback trigger id: {ctx.triggered_id}")
     dates = get_date_list(start_date, end_date)
-    df = select_df(DATAFRAMES, dropdown, institutions, dates, machines)
+    df = select_df(ALLOC_DATAFRAMES, dropdown, institutions, dates, machines)
     if not current_user.is_authenticated:
         table = html.Div(
             [
@@ -146,7 +144,7 @@ def update_figs(
     )
 
     totals = get_allocation_totals(
-        DATAFRAMES,
+        ALLOC_DATAFRAMES,
         institutions,
         dates,
         ["utrc_active_allocations", "utrc_current_allocations"],

@@ -18,6 +18,7 @@ from src.ui_functions import (
     make_filters,
     make_summary_panel,
 )
+from src.constants import MACHINES_MENU, INSTITUTIONS_MENU
 
 
 def test_make_df_download_button():
@@ -365,23 +366,7 @@ def test_make_filters():
                             html.Div(
                                 [
                                     dcc.Dropdown(
-                                        [
-                                            "All",
-                                            "UTAus",
-                                            "UTA",
-                                            "UTD",
-                                            "UTEP",
-                                            "UTPB",
-                                            "UTRGV",
-                                            "UTSA",
-                                            "UTT",
-                                            "UTHSC-H",
-                                            "UTHSC-SA",
-                                            "UTMB",
-                                            "UTMDA",
-                                            "UTSW",
-                                            "UTSYS",
-                                        ],
+                                        INSTITUTIONS_MENU,
                                         ["All"],
                                         multi=True,
                                         id="select_institutions_dd",
@@ -401,17 +386,7 @@ def test_make_filters():
                             ),
                             html.Div(
                                 dcc.Dropdown(
-                                    [
-                                        "All",
-                                        "Lonestar6",
-                                        "Frontera",
-                                        "Longhorn3",
-                                        "Stampede4",
-                                        "Lonestar5",
-                                        "Maverick3",
-                                        "Jetstream",
-                                        "Hikari",
-                                    ],
+                                    MACHINES_MENU,
                                     ["All"],
                                     multi=True,
                                     id="select_machine_dd",

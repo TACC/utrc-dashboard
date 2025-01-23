@@ -17,7 +17,7 @@ from src.data_functions import (
 def test_create_fy_options():
     # This will break whenever a new fiscal year is added to the data
     t1 = create_fy_options()
-    assert t1 == ["22-23", "23-24"]
+    assert t1 == ["22-23", "23-24", "24-25"]
 
 
 def test_get_date_list():

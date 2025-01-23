@@ -143,6 +143,7 @@ app.layout = html.Div(
         ),
         html.Div(
             [
+                dcc.Store(id="test", data="test"),
                 dash.page_container,
             ],
             className="body",

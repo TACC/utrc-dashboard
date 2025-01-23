@@ -10,7 +10,6 @@ from src.data_functions import (
     create_fy_options,
     get_date_list,
     get_totals,
-    merge_workbooks,
     select_df,
 )
 from src.ui_functions import (
@@ -20,6 +19,7 @@ from src.ui_functions import (
     make_filters,
     make_summary_panel,
 )
+from src.startup import DATAFRAMES
 
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
 logging.basicConfig(level=LOGGING_LEVEL)
@@ -27,16 +27,14 @@ logging.basicConfig(level=LOGGING_LEVEL)
 dash.register_page(__name__, path="/")
 app = dash.get_app()
 
-# INCORPORATE DATA
 FY_OPTIONS = create_fy_options()
-WORKSHEETS = [
-    "utrc_individual_user_hpc_usage",
-    "utrc_new_users",
-    "utrc_idle_users",
-    "utrc_suspended_users",
-]
 
-DATAFRAMES = merge_workbooks(WORKSHEETS)
+USER_DATAFRAMES = {
+    "utrc_individual_user_hpc_usage": DATAFRAMES["utrc_individual_user_hpc_usage"],
+    "utrc_new_users": DATAFRAMES["utrc_new_users"],
+    "utrc_idle_users": DATAFRAMES["utrc_idle_users"],
+    "utrc_suspended_users": DATAFRAMES["utrc_suspended_users"],
+}
 
 
 dd_options = [
@@ -98,7 +96,7 @@ def func(
         # prepare df
         dates = get_date_list(start_date, end_date)
         df = select_df(
-            DATAFRAMES,
+            USER_DATAFRAMES,
             dropdown,
             checklist,
             dates,
@@ -129,7 +127,7 @@ def update_figs(
     logging.debug(f"Callback trigger id: {ctx.triggered_id}")
     dates = get_date_list(start_date, end_date)
     df = select_df(
-        DATAFRAMES,
+        USER_DATAFRAMES,
         dropdown,
         checklist,
         dates,
@@ -167,7 +165,7 @@ def update_figs(
         combined_df, "Users per Institution", dates, None, "Number of Users"
     )
     totals = get_totals(
-        DATAFRAMES,
+        USER_DATAFRAMES,
         checklist,
         dates,
         ["utrc_individual_user_hpc_usage", "utrc_idle_users"],

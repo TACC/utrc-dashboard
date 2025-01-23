@@ -4,6 +4,7 @@ import plotly.express as px
 from dash import dash_table, dcc, html
 
 from src.data_functions import create_fy_options, get_all_months
+from src.constants import MACHINES_MENU, INSTITUTIONS_MENU
 
 FY_OPTIONS = create_fy_options()
 
@@ -123,23 +124,7 @@ def make_filters(dd_label, dd_options, dd_default):
                             html.Div(
                                 [
                                     dcc.Dropdown(
-                                        [
-                                            "All",
-                                            "UTAus",
-                                            "UTA",
-                                            "UTD",
-                                            "UTEP",
-                                            "UTPB",
-                                            "UTRGV",
-                                            "UTSA",
-                                            "UTT",
-                                            "UTHSC-H",
-                                            "UTHSC-SA",
-                                            "UTMB",
-                                            "UTMDA",
-                                            "UTSW",
-                                            "UTSYS",
-                                        ],
+                                        INSTITUTIONS_MENU,
                                         ["All"],
                                         multi=True,
                                         id="select_institutions_dd",
@@ -159,17 +144,7 @@ def make_filters(dd_label, dd_options, dd_default):
                             ),
                             html.Div(
                                 dcc.Dropdown(
-                                    [
-                                        "All",
-                                        "Lonestar6",
-                                        "Frontera",
-                                        "Longhorn3",
-                                        "Stampede4",
-                                        "Lonestar5",
-                                        "Maverick3",
-                                        "Jetstream",
-                                        "Hikari",
-                                    ],
+                                    MACHINES_MENU,
                                     ["All"],
                                     multi=True,
                                     id="select_machine_dd",

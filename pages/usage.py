@@ -10,7 +10,6 @@ from src.data_functions import (
     calc_corral_total,
     calc_node_monthly_sums,
     get_date_list,
-    merge_workbooks,
     select_df,
 )
 from src.ui_functions import (
@@ -20,6 +19,7 @@ from src.ui_functions import (
     make_filters,
     make_summary_panel,
 )
+from src.startup import DATAFRAMES
 
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
 logging.basicConfig(level=LOGGING_LEVEL)
@@ -27,10 +27,10 @@ logging.basicConfig(level=LOGGING_LEVEL)
 dash.register_page(__name__)
 app = dash.get_app()
 
-# INCORPORATE DATA
-WORKSHEETS = ["utrc_active_allocations", "utrc_corral_usage"]
-
-DATAFRAMES = merge_workbooks(WORKSHEETS)
+USAGE_DATAFRAMES = {
+    "utrc_active_allocations": DATAFRAMES["utrc_active_allocations"],
+    "utrc_corral_usage": DATAFRAMES["utrc_corral_usage"],
+}
 
 dd_options = [
     {"label": "Active Allocations", "value": "utrc_active_allocations"},
@@ -80,7 +80,7 @@ def func(
         # prepare df
         dates = get_date_list(start_date, end_date)
         df = select_df(
-            DATAFRAMES,
+            USAGE_DATAFRAMES,
             dropdown,
             checklist,
             dates,
@@ -112,7 +112,7 @@ def update_figs(
     logging.debug(f"Callback trigger id: {ctx.triggered_id}")
 
     dates = get_date_list(start_date, end_date)
-    df = select_df(DATAFRAMES, dropdown, institutions, dates, machines)
+    df = select_df(USAGE_DATAFRAMES, dropdown, institutions, dates, machines)
 
     if not current_user.is_authenticated:
         table = html.Div(
@@ -137,7 +137,7 @@ def update_figs(
         ]
 
     sus_df = select_df(
-        DATAFRAMES,
+        USAGE_DATAFRAMES,
         "utrc_active_allocations",
         institutions,
         dates,
@@ -155,7 +155,7 @@ def update_figs(
     )
 
     corral_df = select_df(
-        DATAFRAMES, "utrc_corral_usage", institutions, dates, machines
+        USAGE_DATAFRAMES, "utrc_corral_usage", institutions, dates, machines
     )
     corral_df_calculated = calc_corral_monthly_sums(corral_df, institutions)
     total_storage = calc_corral_total(corral_df_calculated)
