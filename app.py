@@ -281,11 +281,13 @@ def auth_button_click(n_clicks_login, username, password):
         session["login_attempts"] = 1
     if n_clicks_login > 0:
         if username not in ACCOUNTS:
-            return no_update, html.P("Invalid username", className="auth-form__error")
+            return no_update, html.P(
+                "Invalid credentials", className="auth-form__error"
+            )
         if ACCOUNTS[username] == password:
             login_user(User(username))
             return "/", ""
-        return no_update, html.P("Incorrect password", className="auth-form__error")
+        return no_update, html.P("Invalid credentials", className="auth-form__error")
     else:
         return no_update, no_update
 
