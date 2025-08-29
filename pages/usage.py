@@ -19,7 +19,8 @@ from src.ui_functions import (
     make_filters,
     make_summary_panel,
 )
-from src.startup import DATAFRAMES
+
+from pages.users import DATAFRAMES
 
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
 logging.basicConfig(level=LOGGING_LEVEL)

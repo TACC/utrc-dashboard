@@ -2,7 +2,6 @@ import logging
 import re
 from datetime import datetime
 from os import walk
-
 import pandas as pd
 from fuzzywuzzy import fuzz
 
@@ -10,7 +9,6 @@ from .constants import (
     COLUMN_HEADERS,
     COLUMN_ORDER,
     INSTITUTIONS,
-    REPORTS_PATH,
     WORKSHEETS_RM_DUPLICATES,
 )
 
@@ -108,24 +106,6 @@ def initialize_df(workbook_path, WORKSHEETS):
             remove_duplicates(dataframes[worksheet])
 
     return dataframes
-
-
-def merge_workbooks(WORKSHEETS):
-    logging.info(f"Processing workbooks for {', '.join(WORKSHEETS)}")
-    workbook_paths = get_workbook_paths(REPORTS_PATH)
-    for index, path in enumerate(workbook_paths):
-        workbook = initialize_df(path, WORKSHEETS)
-        filename = path.split("/")[-1]
-        logging.info(f"Processing {filename}")
-        workbook = append_date_to_worksheets(workbook, filename)
-
-        if index == 0:
-            dict_of_dfs = workbook
-        else:
-            for sheet in WORKSHEETS:
-                dict_of_dfs[sheet] = pd.concat([dict_of_dfs[sheet], workbook[sheet]])
-    logging.info(f"Done processing workbooks for {', '.join(WORKSHEETS)}")
-    return dict_of_dfs
 
 
 def clean_df(df):

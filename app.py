@@ -25,6 +25,16 @@ FY_OPTIONS = create_fy_options()
 
 server = Flask(__name__)
 server.config["MAX_LOGIN_ATTEMPTS"] = 3
+
+if settings["DEBUG_MODE"]:
+    # Cache setup
+    config = {
+        "CACHE_TYPE": "FileSystemCache",
+        "CACHE_DEFAULT_TIMEOUT": 31536000,  # arbitrarily long cache time
+        "CACHE_DIR": "cache",
+    }
+    server.config.from_mapping(config)
+
 app = dash.Dash(
     __name__,
     server=server,
