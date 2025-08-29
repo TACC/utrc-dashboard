@@ -1,0 +1,12 @@
+services:
+  full:
+    extends:
+      file: docker-compose.yaml
+      service: full
+    entrypoint:
+      - python
+      - app.py
+    volumes:
+      - type: bind
+        source: ./
+        target: /app
