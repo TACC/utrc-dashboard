@@ -2,11 +2,20 @@ import copy
 
 import plotly.express as px
 from dash import dash_table, dcc, html
-
+import plotly.graph_objects as go
 from src.data_functions import create_fy_options, get_all_months
 from src.constants import MACHINES_MENU, INSTITUTIONS_MENU
+import json
 
 FY_OPTIONS = create_fy_options()
+
+FY_COLORS = [
+    "#026",
+    "#10f7a9",
+    "#f2b327",
+    "#ed4c11",
+    "#6039cc",
+]
 
 
 def make_date_dd(which):
@@ -23,6 +32,26 @@ def make_date_dd(which):
             dates[-1],
             id="end_date_dd",
         )
+    return dd
+
+
+def make_date_dd_r(which, date=None, pos=0):
+    dates = get_all_months()
+    if date:
+        default = date
+    if which == "start":
+        id = {"type": "start-date-dd", "index": pos}
+        if not date:
+            default = dates[0]
+    elif which == "end":
+        id = {"type": "end-date-dd", "index": pos}
+        if not date:
+            default = dates[-1]
+    dd = dcc.Dropdown(
+        dates,
+        default,
+        id=id,
+    )
     return dd
 
 
@@ -222,6 +251,201 @@ def make_filters(dd_label, dd_options, dd_default):
     )
 
 
+def make_other_filters(dd_label, dd_options, dd_default):
+    return html.Div(
+        [
+            html.Button(
+                [
+                    html.H3(
+                        "Filters",
+                        className="filter-toggle__title",
+                    ),
+                    html.I(
+                        id="chevron-icon",
+                        className="bi bi-chevron-down filter-toggle__chevron",
+                    ),
+                ],
+                id="toggle-filters",
+                n_clicks=0,
+                className="filter-toggle__button",
+            ),
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Label(
+                                "Institution:",
+                                htmlFor="select-institutions-dd",
+                                className="filter-box__label",
+                            ),
+                            html.Div(
+                                [
+                                    dcc.Dropdown(
+                                        INSTITUTIONS_MENU,
+                                        "UTAus",
+                                        multi=False,
+                                        id="select-institution-dd",
+                                    ),
+                                ],
+                            ),
+                        ],
+                        id="select-institutions-div",
+                    ),
+                    html.Hr(),
+                    html.Div(
+                        [
+                            html.Label(
+                                "Machine:",
+                                htmlFor="select-machine-dd",
+                                className="filter-box__label",
+                            ),
+                            html.Div(
+                                dcc.Dropdown(
+                                    MACHINES_MENU,
+                                    ["All"],
+                                    multi=True,
+                                    id="select-machine-dd",
+                                )
+                            ),
+                        ],
+                        id="select_machine_div",
+                    ),
+                    html.Hr(),
+                    html.Div(
+                        [
+                            html.Label(
+                                dd_label,
+                                htmlFor="report-specific-dd",
+                                className="filter-box__label",
+                            ),
+                            dcc.Dropdown(
+                                id="report-specific-dd",
+                                options=dd_options,
+                                value=dd_default,
+                                clearable=False,
+                            ),
+                        ]
+                    ),
+                ],
+                id="filters",
+                style={
+                    "display": "",
+                },
+                className="c-island filter-box",
+            ),
+        ]
+    )
+
+
+def make_date_range(start_date=None, end_date=None, pos=0):
+    return html.Div(
+        [
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Label(
+                                "Start month:",
+                                htmlFor=json.dumps(
+                                    {"type": "start-date-dd", "index": pos}
+                                ),
+                                className="filter-box__label",
+                            ),
+                            make_date_dd_r("start", date=start_date, pos=pos),
+                        ],
+                        className="date-dropdown date-dropdown--not-last",
+                    ),
+                    html.Div(
+                        [
+                            html.Label(
+                                "End month:",
+                                htmlFor=json.dumps(
+                                    {"type": "end-date-dd", "index": pos}
+                                ),
+                                className="filter-box__label",
+                            ),
+                            make_date_dd_r("end", date=end_date, pos=pos),
+                        ],
+                        className="date-dropdown date-dropdown--not-last",
+                    ),
+                    html.Div(
+                        [
+                            html.Label(
+                                "Fiscal year:",
+                                htmlFor=json.dumps({"type": "fy-dd", "index": pos}),
+                                className="filter-box__label",
+                            ),
+                            dcc.Dropdown(
+                                FY_OPTIONS,
+                                id={"type": "fy-dd", "index": pos},
+                            ),
+                        ],
+                        className="date-dropdown",
+                    ),
+                    html.Div(
+                        html.Button(
+                            html.I(className="bi bi-x-lg remove-range__icon"),
+                            id={"type": "remove-date-range", "index": pos},
+                            n_clicks=0,
+                            className="c-button remove-range__button",
+                        ),
+                        className="remove-range__div",
+                    ),
+                ],
+                style={"display": "flex", "width": "100%"},
+            ),
+            html.Hr(),
+        ],
+        id={"type": "date-range", "index": pos},
+    )
+
+
+def make_date_filters(start_date=None, end_date=None):
+    return html.Div(
+        [
+            html.Button(
+                [
+                    html.H3(
+                        "Date Ranges",
+                        className="filter-toggle__title",
+                    ),
+                    html.I(
+                        id="chevron-icon",
+                        className="bi bi-chevron-down filter-toggle__chevron",
+                    ),
+                ],
+                id="toggle-date-filters",
+                n_clicks=0,
+                className="filter-toggle__button",
+            ),
+            html.Div(
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                make_date_range(start_date, end_date, pos=0),
+                            ],
+                            id="date-ranges-div",
+                        ),
+                        html.Div(
+                            html.Button(
+                                "Add Range",
+                                id="add-date-range",
+                                n_clicks=0,
+                                className="c-button c-button--primary button--medium",
+                            ),
+                        ),
+                        html.Div(id="error-div", style={"height": "32px"}),
+                    ],
+                ),
+                id="date-filters",
+                style={"display": ""},
+                className="c-island filter-box",
+            ),
+        ]
+    )
+
+
 def create_conditional_style(df):
     """
     Necessary workaround for a Plotly Dash bug where table headers are cut off if row data is shorter than the header.
@@ -400,3 +624,29 @@ def make_bar_graph(df, title, dates, yaxis, ytitle=None, hover=None):
         [html.H2(title), dcc.Graph(figure=fig)],
         className="graph-card",
     )
+
+
+def add_comparison_trace(fig, df, name, i):
+    # add a trace to the comparison bar graph
+    fig.add_trace(
+        go.Histogram(
+            x=df["Month Name"].to_list(),
+            name=name,
+            marker={"color": FY_COLORS[i % 4]},
+        )
+    )
+    return fig
+
+
+def make_bar_graph_comparison(dfs, names, title, yaxis, ytitle=None, hover=None):
+    fig = go.Figure()
+
+    for idx, (df, name) in enumerate(zip(dfs, names)):
+        fig = add_comparison_trace(fig, df, name, idx)
+
+    fig.update_layout(
+        barmode="overlay", xaxis_title_text=title, yaxis_title_text=ytitle
+    )
+    fig.update_traces(opacity=0.75)
+
+    return fig

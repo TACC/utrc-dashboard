@@ -4,6 +4,7 @@ from datetime import datetime
 from os import walk
 import pandas as pd
 from fuzzywuzzy import fuzz
+from src.constants import FISCAL_YEAR_MONTHS
 
 from .constants import (
     COLUMN_HEADERS,
@@ -31,6 +32,7 @@ def fuzzy_match_institution(institution_input):
 
 
 def get_fiscal_year_dates(fiscal_year):
+    # TODO: replace start and end months with ref in constants.py
     start = fiscal_year.split("-")[0]
     start_months = ["09", "10", "11", "12"]
     end = fiscal_year.split("-")[1]
@@ -74,6 +76,25 @@ def get_date_list(start, end):
     else:
         end_idx = all_months.index(end)
         return all_months[start_idx : end_idx + 1]
+
+
+def split_month(date):
+    return date.split("-")[1]
+
+
+def check_date_order(start_date: str, end_date: str) -> bool:
+    """check that the start date is before the end date"""
+    start = start_date.split("-")
+    end = end_date.split("-")
+    # if end year is after start year, order is ok
+    if int(end[0]) > int(start[0]):
+        return True
+    elif int(end[0]) < int(start[0]):
+        return False
+    elif int(end[1]) >= int(start[1]):
+        return True
+    else:
+        return False
 
 
 def append_date_to_worksheets(workbook, filename):
@@ -303,6 +324,27 @@ def calc_node_monthly_sums(df, institutions):
     return df_with_avgs
 
 
+def get_fy_for_month(date: str) -> str:
+    datelist = date.split("-")
+    year = datelist[0]
+    month = datelist[1]
+    if month in FISCAL_YEAR_MONTHS["start_months"]:
+        fy = f"{year}-{int(year) + 1}"
+    elif month in FISCAL_YEAR_MONTHS["end_months"]:
+        fy = f"{int(year) - 1}-{year}"
+    return fy
+
+
+def get_first_or_last_month_in_fy(fy: str, which: str):
+    if which == "first":
+        month = FISCAL_YEAR_MONTHS["start_months"][0]
+        year = fy.split("-")[0]
+    elif which == "last":
+        month = FISCAL_YEAR_MONTHS["end_months"][-1]
+        year = fy.split("-")[1]
+    return f"{year}-{month}"
+
+
 def create_fy_options():
     paths = get_workbook_paths("./assets/data/monthly_reports")
     dates = []
@@ -311,15 +353,8 @@ def create_fy_options():
         dates.append(get_date_from_filename(filename))
 
     fy_options = []
-    start_months = ["09", "10", "11", "12"]
-    end_months = ["01", "02", "03", "04", "05", "06", "07", "08"]
     for date in dates:
-        year = date.split("-")[0]
-        month = date.split("-")[1]
-        if month in start_months:
-            option = f"{year}-{int(year) + 1}"
-        elif month in end_months:
-            option = f"{int(year) - 1}-{year}"
+        option = get_fy_for_month(date)
         if option not in fy_options:
             fy_options.append(option)
     fy_options.sort()

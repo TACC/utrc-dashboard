@@ -257,6 +257,20 @@ def select_all_none_machine(selected, possible):
 
 
 @app.callback(
+    Output("select-machine-dd", "value"),
+    Input("select-machine-dd", "value"),
+    [State("select-machine-dd", "options")],
+)
+def select_all_none_machine_2(selected, possible):
+    opts = []
+    if "All" in selected:
+        opts = possible
+    else:
+        opts = selected
+    return opts
+
+
+@app.callback(
     Output("start_date_dd", "value"),
     Output("end_date_dd", "value"),
     Input("fy_dd", "value"),
