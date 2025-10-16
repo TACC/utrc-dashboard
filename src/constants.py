@@ -261,3 +261,21 @@ MONTH_NAMES = {
     "11": "Nov",
     "12": "Dec",
 }
+
+DD_OPTIONS = {
+    "Users": [
+        {"label": "Active Users", "value": "utrc_individual_user_hpc_usage"},
+        {"label": "New Users", "value": "utrc_new_users"},
+        {"label": "Idle Users", "value": "utrc_idle_users"},
+        {"label": "Suspended Users", "value": "utrc_suspended_users"},
+    ],
+    "Allocations": [
+        {"label": "Active Allocations", "value": "utrc_active_allocations"},
+        {"label": "Current Allocations", "value": "utrc_current_allocations"},
+        {"label": "New Allocations", "value": "utrc_new_allocation_requests"},
+    ],
+    "Usage": [
+        {"label": "Active Allocations", "value": "utrc_active_allocations"},
+        {"label": "Corral Usage", "value": "utrc_corral_usage"},
+    ],
+}

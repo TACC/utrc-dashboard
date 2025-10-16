@@ -32,15 +32,12 @@ def fuzzy_match_institution(institution_input):
 
 
 def get_fiscal_year_dates(fiscal_year):
-    # TODO: replace start and end months with ref in constants.py
     start = fiscal_year.split("-")[0]
-    start_months = ["09", "10", "11", "12"]
     end = fiscal_year.split("-")[1]
-    end_months = ["01", "02", "03", "04", "05", "06", "07", "08"]
     dates = []
-    for month in start_months:
+    for month in FISCAL_YEAR_MONTHS["start_months"]:
         dates.append(f"{start}-{month}")
-    for month in end_months:
+    for month in FISCAL_YEAR_MONTHS["end_months"]:
         dates.append(f"{end}-{month}")
     return dates
 

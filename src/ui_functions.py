@@ -251,7 +251,7 @@ def make_filters(dd_label, dd_options, dd_default):
     )
 
 
-def make_other_filters(dd_label, dd_options, dd_default):
+def make_other_filters(dd_options, dd_default, report_value):
     return html.Div(
         [
             html.Button(
@@ -279,14 +279,12 @@ def make_other_filters(dd_label, dd_options, dd_default):
                                 className="filter-box__label",
                             ),
                             html.Div(
-                                [
-                                    dcc.Dropdown(
-                                        INSTITUTIONS_MENU,
-                                        "UTAus",
-                                        multi=False,
-                                        id="select-institution-dd",
-                                    ),
-                                ],
+                                dcc.Dropdown(
+                                    INSTITUTIONS_MENU,
+                                    "UTAus",
+                                    multi=False,
+                                    id="select-institution-dd",
+                                ),
                             ),
                         ],
                         id="select-institutions-div",
@@ -313,18 +311,40 @@ def make_other_filters(dd_label, dd_options, dd_default):
                     html.Hr(),
                     html.Div(
                         [
-                            html.Label(
-                                dd_label,
-                                htmlFor="report-specific-dd",
-                                className="filter-box__label",
+                            html.Div(
+                                [
+                                    html.Label(
+                                        "Report:",
+                                        htmlFor="report-picker-dd",
+                                        className="filter-box__label",
+                                    ),
+                                    dcc.Dropdown(
+                                        id="report-picker-dd",
+                                        options=["Users", "Allocations", "Usage"],
+                                        value=report_value,
+                                        clearable=False,
+                                    ),
+                                ],
+                                className="dropdown-column dropdown-column--not-last",
                             ),
-                            dcc.Dropdown(
-                                id="report-specific-dd",
-                                options=dd_options,
-                                value=dd_default,
-                                clearable=False,
+                            html.Div(
+                                [
+                                    html.Label(
+                                        "Report Metric:",
+                                        htmlFor="report-specific-dd",
+                                        className="filter-box__label",
+                                    ),
+                                    dcc.Dropdown(
+                                        id="report-specific-dd",
+                                        options=dd_options,
+                                        value=dd_default,
+                                        clearable=False,
+                                    ),
+                                ],
+                                className="dropdown-column",
                             ),
-                        ]
+                        ],
+                        className="dropdown-column--container",
                     ),
                 ],
                 id="filters",
@@ -333,7 +353,8 @@ def make_other_filters(dd_label, dd_options, dd_default):
                 },
                 className="c-island filter-box",
             ),
-        ]
+        ],
+        id="other-filters",
     )
 
 
@@ -353,7 +374,7 @@ def make_date_range(start_date=None, end_date=None, pos=0):
                             ),
                             make_date_dd_r("start", date=start_date, pos=pos),
                         ],
-                        className="date-dropdown date-dropdown--not-last",
+                        className="dropdown-column dropdown-column--not-last",
                     ),
                     html.Div(
                         [
@@ -366,7 +387,7 @@ def make_date_range(start_date=None, end_date=None, pos=0):
                             ),
                             make_date_dd_r("end", date=end_date, pos=pos),
                         ],
-                        className="date-dropdown date-dropdown--not-last",
+                        className="dropdown-column dropdown-column--not-last",
                     ),
                     html.Div(
                         [
@@ -380,7 +401,7 @@ def make_date_range(start_date=None, end_date=None, pos=0):
                                 id={"type": "fy-dd", "index": pos},
                             ),
                         ],
-                        className="date-dropdown",
+                        className="dropdown-column",
                     ),
                     html.Div(
                         html.Button(
@@ -392,7 +413,7 @@ def make_date_range(start_date=None, end_date=None, pos=0):
                         className="remove-range__div",
                     ),
                 ],
-                style={"display": "flex", "width": "100%"},
+                className="dropdown-column--container",
             ),
             html.Hr(),
         ],

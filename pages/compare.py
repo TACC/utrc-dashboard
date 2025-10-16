@@ -25,7 +25,7 @@ from src.data_functions import (
     split_month,
     check_date_order,
 )
-from src.constants import MONTH_NAMES
+from src.constants import MONTH_NAMES, DD_OPTIONS
 from pages.users import DATAFRAMES
 
 
@@ -54,13 +54,6 @@ bg1 = html.Div(
     ],
     className="graph-card",
 )
-
-USER_DATAFRAMES = {
-    "utrc_individual_user_hpc_usage": DATAFRAMES["utrc_individual_user_hpc_usage"],
-    "utrc_new_users": DATAFRAMES["utrc_new_users"],
-    "utrc_idle_users": DATAFRAMES["utrc_idle_users"],
-    "utrc_suspended_users": DATAFRAMES["utrc_suspended_users"],
-}
 
 
 def check_valid_date_ranges(start, end):
@@ -95,8 +88,10 @@ def check_valid_date_ranges(start, end):
 
 layout = html.Div(
     [
-        html.H1("Users", className="page-title"),
-        make_other_filters("Users:", dd_options, "utrc_individual_user_hpc_usage"),
+        html.H1("Compare Date Ranges", className="page-title"),
+        make_other_filters(
+            DD_OPTIONS["Users"], "utrc_individual_user_hpc_usage", "Users"
+        ),
         make_date_filters(),
         bg1,
         html.Div(id="test-div"),
@@ -128,6 +123,23 @@ def remove_date_range(n_clicks):
     if n_clicks == 0:
         return no_update
     return []
+
+
+@callback(
+    Output("other-filters", "children"),
+    Input("report-picker-dd", "value"),
+)
+def update_report_metrics(which_report):
+    if which_report == "Users":
+        dd_options = DD_OPTIONS["Users"]
+        dd_default = "utrc_individual_user_hpc_usage"
+    elif which_report == "Allocations":
+        dd_options = DD_OPTIONS["Allocations"]
+        dd_default = "utrc_active_allocations"
+    elif which_report == "Usage":
+        dd_options = DD_OPTIONS["Usage"]
+        dd_default = "utrc_active_allocations"
+    return make_other_filters(dd_options, dd_default, which_report)
 
 
 @callback(
@@ -180,7 +192,7 @@ def update_figs(
         names.append(name)
 
         df = select_df(
-            USER_DATAFRAMES,
+            DATAFRAMES,
             report_dd,
             [institution],
             date_range,
@@ -208,3 +220,6 @@ def update_figs(
 
     fig = make_bar_graph_comparison(dfs, names, "Month", None, "Number of Users")
     return fig, err
+
+
+# TODO: investigate and accommodate differences among charts on different pages

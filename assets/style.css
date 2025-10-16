@@ -166,6 +166,19 @@ html, body {
     padding-right: 20px;
 }
 
+.dropdown-column {
+    flex: 1 1 0;
+}
+
+.dropdown-column--not-last {
+    padding-right: 20px;
+}
+
+.dropdown-column--container {
+    display: flex; 
+    width: 100%;
+}
+
 /* pills on multi-select component */
 .c-island .Select--multi .Select-value {
     background-color: var(--global-color-extra--x-light);
