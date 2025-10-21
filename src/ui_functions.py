@@ -1,5 +1,4 @@
 import copy
-
 import plotly.express as px
 from dash import dash_table, dcc, html
 import plotly.graph_objects as go
@@ -647,7 +646,7 @@ def make_bar_graph(df, title, dates, yaxis, ytitle=None, hover=None):
     )
 
 
-def add_comparison_trace(fig, df, name, i):
+def add_hist_trace(fig, df, name, i):
     # add a trace to the comparison bar graph
     fig.add_trace(
         go.Histogram(
@@ -659,15 +658,31 @@ def add_comparison_trace(fig, df, name, i):
     return fig
 
 
-def make_bar_graph_comparison(dfs, names, title, yaxis, ytitle=None, hover=None):
+def add_bar_trace(fig, df, name, i, yaxis):
+    # add a trace to the comparison bar graph
+    fig.add_trace(
+        go.Bar(
+            x=df["Month Name"].to_list(),
+            y=df[yaxis].to_list(),
+            name=name,
+            marker={"color": FY_COLORS[i % 4]},
+        )
+    )
+    return fig
+
+
+def make_bar_graph_comparison(
+    dfs, names, xaxis, yaxis=None, hover=None, chart_type="Hist"
+):
     fig = go.Figure()
 
     for idx, (df, name) in enumerate(zip(dfs, names)):
-        fig = add_comparison_trace(fig, df, name, idx)
+        if chart_type == "Hist":
+            fig = add_hist_trace(fig, df, name, idx)
+        elif chart_type == "Bar":
+            fig = add_bar_trace(fig, df, name, idx, yaxis)
 
-    fig.update_layout(
-        barmode="overlay", xaxis_title_text=title, yaxis_title_text=ytitle
-    )
+    fig.update_layout(barmode="overlay", xaxis_title_text=xaxis, yaxis_title_text=yaxis)
     fig.update_traces(opacity=0.75)
 
     return fig

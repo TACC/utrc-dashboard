@@ -262,20 +262,25 @@ def calc_monthly_avgs(df, institutions):
 
 def calc_corral_monthly_sums(df, institutions):
     inst_grps = df.groupby(["Institution"])
-    df_with_avgs = {"Institution": [], "Date": [], "Storage Granted (TB)": []}
+    dict_with_avgs = {"Institution": [], "Date": [], "Storage Granted (TB)": []}
     for inst in institutions:
         try:
             date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
             for date in date_grps.groups.keys():
                 monthly_sum = date_grps.get_group((date,))["Storage Granted (Gb)"].sum()
                 monthly_sum = int(round(monthly_sum / 1024.0))
-                df_with_avgs["Institution"].append(inst)
-                df_with_avgs["Storage Granted (TB)"].append(round(monthly_sum))
-                df_with_avgs["Date"].append(date)
+                dict_with_avgs["Institution"].append(inst)
+                dict_with_avgs["Storage Granted (TB)"].append(round(monthly_sum))
+                dict_with_avgs["Date"].append(date)
         except KeyError:
             continue
-    df_with_avgs = pd.DataFrame(df_with_avgs)
+    df_with_avgs = pd.DataFrame(dict_with_avgs)
     df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
+    return df_with_avgs
+
+
+def calc_corral_monthly_sums_with_peaks(df, institutions):
+    df_with_avgs = calc_corral_monthly_sums(df, institutions)
     df_with_peaks = add_peaks_to_corral_df(df_with_avgs, institutions)
     return df_with_peaks
 
@@ -298,9 +303,27 @@ def calc_corral_total(df_with_peaks):
     return total
 
 
+def calc_node_monthly_sums_no_machine(df, institutions):
+    inst_grps = df.groupby(["Institution"])
+    dict_with_avgs = {"Institution": [], "Date": [], "SU's Charged": []}
+    for inst in institutions:
+        try:
+            date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
+            for date, group in date_grps:
+                monthly_sum = group["SU's Charged"].sum()
+                dict_with_avgs["Institution"].append(inst)
+                dict_with_avgs["SU's Charged"].append(round(monthly_sum))
+                dict_with_avgs["Date"].append(date[0])
+        except KeyError:
+            continue
+    df_with_avgs = pd.DataFrame(dict_with_avgs)
+    df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
+    return df_with_avgs
+
+
 def calc_node_monthly_sums(df, institutions):
     inst_grps = df.groupby(["Institution"])
-    df_with_avgs = {"Institution": [], "Resource": [], "Date": [], "SU's Charged": []}
+    dict_with_avgs = {"Institution": [], "Resource": [], "Date": [], "SU's Charged": []}
     for inst in institutions:
         try:
             date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
@@ -310,13 +333,13 @@ def calc_node_monthly_sums(df, institutions):
                     monthly_sum = machine_grps.get_group((machine,))[
                         "SU's Charged"
                     ].sum()
-                    df_with_avgs["Institution"].append(inst)
-                    df_with_avgs["Resource"].append(machine)
-                    df_with_avgs["SU's Charged"].append(round(monthly_sum))
-                    df_with_avgs["Date"].append(date)
+                    dict_with_avgs["Institution"].append(inst)
+                    dict_with_avgs["Resource"].append(machine)
+                    dict_with_avgs["SU's Charged"].append(round(monthly_sum))
+                    dict_with_avgs["Date"].append(date)
         except KeyError:
             continue
-    df_with_avgs = pd.DataFrame(df_with_avgs)
+    df_with_avgs = pd.DataFrame(dict_with_avgs)
     df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
     return df_with_avgs
 

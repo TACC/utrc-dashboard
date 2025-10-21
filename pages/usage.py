@@ -1,12 +1,11 @@
 import logging
-
 import dash
 from dash import Input, Output, State, ctx, dcc, html
 from flask_login import current_user
 
 from config import settings
 from src.data_functions import (
-    calc_corral_monthly_sums,
+    calc_corral_monthly_sums_with_peaks,
     calc_corral_total,
     calc_node_monthly_sums,
     get_date_list,
@@ -158,7 +157,7 @@ def update_figs(
     corral_df = select_df(
         USAGE_DATAFRAMES, "utrc_corral_usage", institutions, dates, machines
     )
-    corral_df_calculated = calc_corral_monthly_sums(corral_df, institutions)
+    corral_df_calculated = calc_corral_monthly_sums_with_peaks(corral_df, institutions)
     total_storage = calc_corral_total(corral_df_calculated)
 
     corral_graph = make_bar_graph(

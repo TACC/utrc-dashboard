@@ -24,8 +24,10 @@ from src.data_functions import (
     select_df,
     split_month,
     check_date_order,
+    calc_node_monthly_sums_no_machine,
+    calc_corral_monthly_sums,
 )
-from src.constants import MONTH_NAMES, DD_OPTIONS
+from src.constants import MONTH_NAMES, DD_OPTIONS, REPORT_INFO
 from pages.users import DATAFRAMES
 
 
@@ -46,7 +48,7 @@ dd_options = [
 
 bg1 = html.Div(
     [
-        html.H2("Users per Institution"),
+        html.H2("", id="comparison-title"),
         dcc.Graph(
             figure={},
             id="bar-graph-comparison",
@@ -138,7 +140,7 @@ def update_report_metrics(which_report):
         dd_default = "utrc_active_allocations"
     elif which_report == "Usage":
         dd_options = DD_OPTIONS["Usage"]
-        dd_default = "utrc_active_allocations"
+        dd_default = "utrc_sus_charged"
     return make_other_filters(dd_options, dd_default, which_report)
 
 
@@ -165,6 +167,7 @@ def add_date_range(n_clicks, start, end):
 
 @callback(
     Output("bar-graph-comparison", "figure"),
+    Output("comparison-title", "children"),
     Output("error-div", "children"),
     Input("report-specific-dd", "value"),
     Input("select-institution-dd", "value"),
@@ -181,7 +184,7 @@ def update_figs(
 ):
     err = check_valid_date_ranges(start_dates, end_dates)
     if err:
-        return no_update, err
+        return no_update, no_update, err
     dfs = []
     names = []
 
@@ -193,16 +196,23 @@ def update_figs(
 
         df = select_df(
             DATAFRAMES,
-            report_dd,
+            REPORT_INFO[report_dd][2],
             [institution],
             date_range,
             machines,
         )
 
+        # do additional aggregation for usage charts
+        if report_dd == "utrc_sus_charged":
+            df = calc_node_monthly_sums_no_machine(df, [institution])
+        elif report_dd == "utrc_corral_usage":
+            df = calc_corral_monthly_sums(df, [institution])
+
         # assign each unique date a bin number
         unique_bins = df["Date"].unique()
         num_bins = unique_bins.size
         bins_list = unique_bins.tolist()
+
         map_df = pd.DataFrame(
             {"dates": bins_list, "bins": [x for x in range(num_bins)]}
         )
@@ -211,15 +221,24 @@ def update_figs(
         def get_month_name(date, bin):
             month_num = split_month(date)
             which_year = bin // 12
-            # when a month appears again in a date ranger > 1 year, append a space to the end so that it will be a new bin
+            # when a month appears again in a date range > 1 year, append a space to the end so that it will be a new bin
             month_name = MONTH_NAMES[month_num] + (which_year * " ")
             return month_name
 
         df["Month Name"] = df.apply(lambda x: get_month_name(x.Date, x.Bin), axis=1)
         dfs.append(df)
 
-    fig = make_bar_graph_comparison(dfs, names, "Month", None, "Number of Users")
-    return fig, err
-
-
-# TODO: investigate and accommodate differences among charts on different pages
+    if report_dd == "utrc_sus_charged" or report_dd == "utrc_corral_usage":
+        fig = make_bar_graph_comparison(
+            dfs,
+            names=names,
+            xaxis="Month",
+            yaxis=REPORT_INFO[report_dd][1],
+            chart_type="Bar",
+        )
+    else:
+        fig = make_bar_graph_comparison(
+            dfs, names=names, xaxis="Month", yaxis=REPORT_INFO[report_dd][1]
+        )
+    title = REPORT_INFO[report_dd][0]
+    return fig, title, err

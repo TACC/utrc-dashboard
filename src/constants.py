@@ -275,7 +275,43 @@ DD_OPTIONS = {
         {"label": "New Allocations", "value": "utrc_new_allocation_requests"},
     ],
     "Usage": [
-        {"label": "Active Allocations", "value": "utrc_active_allocations"},
+        {"label": "Active Allocations", "value": "utrc_sus_charged"},
         {"label": "Corral Usage", "value": "utrc_corral_usage"},
     ],
+}
+
+REPORT_INFO = {
+    "utrc_individual_user_hpc_usage": [
+        "Users per Month",
+        "Active Users",
+        "utrc_individual_user_hpc_usage",
+    ],
+    "utrc_new_users": ["Users per Month", "New Users", "utrc_new_users"],
+    "utrc_idle_users": ["Users per Month", "Idle Users", "utrc_idle_users"],
+    "utrc_suspended_users": [
+        "Users per Month",
+        "Suspended Users",
+        "utrc_suspended_users",
+    ],
+    "utrc_active_allocations": [
+        "Allocations per Month",
+        "Active Allocations",
+        "utrc_active_allocations",
+    ],
+    "utrc_current_allocations": [
+        "Allocations per Month",
+        "Current Allocations",
+        "utrc_current_allocations",
+    ],
+    "utrc_new_allocation_requests": [
+        "Allocations per Month",
+        "New Allocations",
+        "utrc_new_allocation_requests",
+    ],
+    "utrc_sus_charged": [
+        "SU's Charged per Month",
+        "SU's Charged",
+        "utrc_active_allocations",
+    ],
+    "utrc_corral_usage": ["Corral Usage", "Storage Granted (TB)", "utrc_corral_usage"],
 }

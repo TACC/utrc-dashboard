@@ -1,5 +1,4 @@
 import logging
-
 import dash
 from dash import Input, Output, State, ctx, dcc, html
 from flask_login import current_user
