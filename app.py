@@ -132,6 +132,14 @@ app.layout = html.Div(
                                                 ),
                                                 className="nav-item",
                                             ),
+                                            html.Li(
+                                                html.A(
+                                                    "Compare",
+                                                    href="/compare",
+                                                    className="nav-link",
+                                                ),
+                                                className="nav-item",
+                                            ),
                                         ],
                                         className="s-cms-nav navbar-nav mr-auto",
                                     ),
