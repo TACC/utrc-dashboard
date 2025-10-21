@@ -12,11 +12,15 @@ from dash import (
     Patch,
 )
 import pandas as pd
+from flask_login import current_user
 from src.ui_functions import (
     make_bar_graph_comparison,
     make_other_filters,
     make_date_filters,
     make_date_range,
+    table_logged_out,
+    make_data_table,
+    make_df_download_button,
 )
 from src.data_functions import (
     get_marks,
@@ -96,7 +100,7 @@ layout = html.Div(
         ),
         make_date_filters(),
         bg1,
-        html.Div(id="test-div"),
+        html.Div(id="compare-table"),
     ]
 )
 
@@ -168,6 +172,7 @@ def add_date_range(n_clicks, start, end):
 @callback(
     Output("bar-graph-comparison", "figure"),
     Output("comparison-title", "children"),
+    Output("compare-table", "children"),
     Output("error-div", "children"),
     Input("report-specific-dd", "value"),
     Input("select-institution-dd", "value"),
@@ -184,7 +189,8 @@ def update_figs(
 ):
     err = check_valid_date_ranges(start_dates, end_dates)
     if err:
-        return no_update, no_update, err
+        return no_update, no_update, no_update, err
+
     dfs = []
     names = []
 
@@ -241,4 +247,18 @@ def update_figs(
             dfs, names=names, xaxis="Month", yaxis=REPORT_INFO[report_dd][1]
         )
     title = REPORT_INFO[report_dd][0]
-    return fig, title, err
+
+    # Make data table
+    if not current_user.is_authenticated:
+        table = table_logged_out
+    else:
+        all_dfs = pd.concat(dfs)
+        table = [
+            make_data_table(
+                all_dfs,
+                [{"column_id": "Date", "direction": "asc"}],
+            ),
+            make_df_download_button("compare"),
+        ]
+
+    return fig, title, table, err

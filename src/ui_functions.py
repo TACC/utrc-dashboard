@@ -54,6 +54,15 @@ def make_date_dd_r(which, date=None, pos=0):
     return dd
 
 
+table_logged_out = html.Div(
+    [
+        "Please ",
+        dcc.Link("login", href="/login"),
+        " to view and download more data",
+    ],
+    className="login-note",
+)
+
 users_filter = html.Div(
     [
         html.Label(
@@ -671,9 +680,7 @@ def add_bar_trace(fig, df, name, i, yaxis):
     return fig
 
 
-def make_bar_graph_comparison(
-    dfs, names, xaxis, yaxis=None, hover=None, chart_type="Hist"
-):
+def make_bar_graph_comparison(dfs, names, xaxis, yaxis=None, chart_type="Hist"):
     fig = go.Figure()
 
     for idx, (df, name) in enumerate(zip(dfs, names)):
@@ -684,5 +691,4 @@ def make_bar_graph_comparison(
 
     fig.update_layout(barmode="overlay", xaxis_title_text=xaxis, yaxis_title_text=yaxis)
     fig.update_traces(opacity=0.75)
-
     return fig

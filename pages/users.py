@@ -20,6 +20,7 @@ from src.ui_functions import (
     make_df_download_button,
     make_filters,
     make_summary_panel,
+    table_logged_out,
 )
 from config import settings
 
@@ -179,14 +180,7 @@ def update_figs(
     )
 
     if not current_user.is_authenticated:
-        table = html.Div(
-            [
-                "Please ",
-                dcc.Link("login", href="/login"),
-                " to view and download more data",
-            ],
-            className="login-note",
-        )
+        table = table_logged_out
     else:
         table = [
             make_data_table(df),
