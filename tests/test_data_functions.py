@@ -1,10 +1,11 @@
 import pandas as pd
 
 from src.data_functions import (
-    calc_corral_monthly_sums,
+    calc_corral_monthly_sums_with_peaks,
     calc_corral_total,
     calc_monthly_avgs,
     calc_node_monthly_sums,
+    calc_node_monthly_sums_no_machine,
     create_fy_options,
     get_allocation_totals,
     get_date_list,
@@ -374,7 +375,7 @@ def test_calc_node_monthly_sums():
     assert t1.equals(r1)
 
 
-def test_calc_corral_monthly_sums():
+def test_calc_corral_monthly_sums_with_peaks():
     d1 = {
         "Institution": ["UTAus", "UTAus", "UTAus", "UTAus", "UTPB", "UTRGV", "UTD"],
         "Storage Granted (Gb)": [x * 1000 for x in range(7)],
@@ -439,7 +440,7 @@ def test_calc_corral_monthly_sums():
         "Storage Granted (TB)": [0, 3, 3, 3],
     }
     r1 = pd.DataFrame(data=d2)
-    t1 = calc_corral_monthly_sums(df1, ["UTAus"])
+    t1 = calc_corral_monthly_sums_with_peaks(df1, ["UTAus"])
     assert t1.equals(r1)
 
 
@@ -551,3 +552,65 @@ def test_get_totals():
         ["Lonestar6", "Frontera"],
     )
     assert t1 == r1
+
+
+# Functions that are used in compare.py
+def test_calc_node_monthly_sums_no_machine():
+    d1 = {
+        "Institution": ["UTAus", "UTAus", "UTAus", "UTAus", "UTPB", "UTRGV", "UTD"],
+        "Resource": [
+            "Lonestar6",
+            "Frontera",
+            "Lonestar6",
+            "Stampede4",
+            "Lonestar5",
+            "Maverick3",
+            "Jetstream",
+        ],
+        "Type": ["VIS", "HPC", "VIS", "HPC", "VIS", "HPC", "VIS"],
+        "SU's Charged": [1, 2, 3, 4, 5, 6, 7],
+        "Last Name": ["Smith", "Doe", "Garcia", "Nguyen", "Brown", "Lee", "Johnson"],
+        "First Name": ["John", "Jill", "Jose", "James", "Joe", "Jade", "Janice"],
+        "Email": [
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+            "test@abc.com",
+        ],
+        "Project Name": ["name", "name", "name", "name", "name", "name", "name"],
+        "Title": [
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+            "title",
+        ],
+        "Project Type": [
+            "Partner",
+            "Research",
+            "Partner",
+            "Research",
+            "Partner",
+            "Research",
+            "Research",
+        ],
+        "Job Count": [1, 2, 3, 4, 5, 6, 7],
+        "User Count": [1, 2, 3, 4, 5, 6, 7],
+        "Login": ["uname", "uname", "uname", "uname", "uname", "uname", "uname"],
+        "New PI?": [None, None, None, None, None, None, None],
+        "Date": ["23-01", "23-12", "23-12", "23-12", "23-12", "23-12", "23-12"],
+    }
+    df1 = pd.DataFrame(data=d1)
+    d2 = {
+        "Institution": ["UTAus", "UTAus"],
+        "Date": ["23-01", "23-12"],
+        "SU's Charged": [1, 27],
+    }
+    r1 = pd.DataFrame(data=d2)
+    t1 = calc_node_monthly_sums_no_machine(df1, "UTAus")
+    assert t1.equals(r1)

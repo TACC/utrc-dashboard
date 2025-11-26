@@ -1,5 +1,4 @@
 import logging
-
 import dash
 import pandas as pd
 from dash import Input, Output, State, ctx, dcc, html

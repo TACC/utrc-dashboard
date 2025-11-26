@@ -210,7 +210,7 @@ def update_figs(
 
         # do additional aggregation for usage charts
         if report_dd == "utrc_sus_charged":
-            df = calc_node_monthly_sums_no_machine(df, [institution])
+            df = calc_node_monthly_sums_no_machine(df, institution)
         elif report_dd == "utrc_corral_usage":
             df = calc_corral_monthly_sums(df, [institution])
 

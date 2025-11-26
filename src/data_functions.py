@@ -303,19 +303,14 @@ def calc_corral_total(df_with_peaks):
     return total
 
 
-def calc_node_monthly_sums_no_machine(df, institutions):
-    inst_grps = df.groupby(["Institution"])
+def calc_node_monthly_sums_no_machine(df, institution):
     dict_with_avgs = {"Institution": [], "Date": [], "SU's Charged": []}
-    for inst in institutions:
-        try:
-            date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
-            for date, group in date_grps:
-                monthly_sum = group["SU's Charged"].sum()
-                dict_with_avgs["Institution"].append(inst)
-                dict_with_avgs["SU's Charged"].append(round(monthly_sum))
-                dict_with_avgs["Date"].append(date[0])
-        except KeyError:
-            continue
+    date_grps = df.groupby(["Date"])
+    for date, group in date_grps:
+        monthly_sum = group["SU's Charged"].sum()
+        dict_with_avgs["Institution"].append(institution)
+        dict_with_avgs["SU's Charged"].append(round(monthly_sum))
+        dict_with_avgs["Date"].append(date[0])
     df_with_avgs = pd.DataFrame(dict_with_avgs)
     df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
     return df_with_avgs
