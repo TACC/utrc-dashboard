@@ -1,5 +1,4 @@
 import logging
-
 import dash
 from dash import Input, Output, State, ctx, dcc, html
 from flask_login import current_user
@@ -18,8 +17,10 @@ from src.ui_functions import (
     make_df_download_button,
     make_filters,
     make_summary_panel,
+    table_logged_out,
 )
-from src.startup import DATAFRAMES
+
+from pages.users import DATAFRAMES
 
 LOGGING_LEVEL = settings["LOGGING_LEVEL"]
 logging.basicConfig(level=LOGGING_LEVEL)
@@ -118,14 +119,7 @@ def update_figs(
     dates = get_date_list(start_date, end_date)
     df = select_df(ALLOC_DATAFRAMES, dropdown, institutions, dates, machines)
     if not current_user.is_authenticated:
-        table = html.Div(
-            [
-                "Please ",
-                dcc.Link("login", href="/login"),
-                " to view and download more data",
-            ],
-            className="login-note",
-        )
+        table = table_logged_out
     else:
         table = [
             make_data_table(df, [{"column_id": "SU's Charged", "direction": "desc"}]),

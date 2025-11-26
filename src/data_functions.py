@@ -2,15 +2,14 @@ import logging
 import re
 from datetime import datetime
 from os import walk
-
 import pandas as pd
 from fuzzywuzzy import fuzz
+from src.constants import FISCAL_YEAR_MONTHS
 
 from .constants import (
     COLUMN_HEADERS,
     COLUMN_ORDER,
     INSTITUTIONS,
-    REPORTS_PATH,
     WORKSHEETS_RM_DUPLICATES,
 )
 
@@ -34,13 +33,11 @@ def fuzzy_match_institution(institution_input):
 
 def get_fiscal_year_dates(fiscal_year):
     start = fiscal_year.split("-")[0]
-    start_months = ["09", "10", "11", "12"]
     end = fiscal_year.split("-")[1]
-    end_months = ["01", "02", "03", "04", "05", "06", "07", "08"]
     dates = []
-    for month in start_months:
+    for month in FISCAL_YEAR_MONTHS["start_months"]:
         dates.append(f"{start}-{month}")
-    for month in end_months:
+    for month in FISCAL_YEAR_MONTHS["end_months"]:
         dates.append(f"{end}-{month}")
     return dates
 
@@ -78,6 +75,25 @@ def get_date_list(start, end):
         return all_months[start_idx : end_idx + 1]
 
 
+def split_month(date):
+    return date.split("-")[1]
+
+
+def check_date_order(start_date: str, end_date: str) -> bool:
+    """check that the start date is before the end date"""
+    start = start_date.split("-")
+    end = end_date.split("-")
+    # if end year is after start year, order is ok
+    if int(end[0]) > int(start[0]):
+        return True
+    elif int(end[0]) < int(start[0]):
+        return False
+    elif int(end[1]) >= int(start[1]):
+        return True
+    else:
+        return False
+
+
 def append_date_to_worksheets(workbook, filename):
     for worksheet in workbook:
         workbook[worksheet]["Date"] = get_date_from_filename(filename)
@@ -108,24 +124,6 @@ def initialize_df(workbook_path, WORKSHEETS):
             remove_duplicates(dataframes[worksheet])
 
     return dataframes
-
-
-def merge_workbooks(WORKSHEETS):
-    logging.info(f"Processing workbooks for {', '.join(WORKSHEETS)}")
-    workbook_paths = get_workbook_paths(REPORTS_PATH)
-    for index, path in enumerate(workbook_paths):
-        workbook = initialize_df(path, WORKSHEETS)
-        filename = path.split("/")[-1]
-        logging.info(f"Processing {filename}")
-        workbook = append_date_to_worksheets(workbook, filename)
-
-        if index == 0:
-            dict_of_dfs = workbook
-        else:
-            for sheet in WORKSHEETS:
-                dict_of_dfs[sheet] = pd.concat([dict_of_dfs[sheet], workbook[sheet]])
-    logging.info(f"Done processing workbooks for {', '.join(WORKSHEETS)}")
-    return dict_of_dfs
 
 
 def clean_df(df):
@@ -264,20 +262,25 @@ def calc_monthly_avgs(df, institutions):
 
 def calc_corral_monthly_sums(df, institutions):
     inst_grps = df.groupby(["Institution"])
-    df_with_avgs = {"Institution": [], "Date": [], "Storage Granted (TB)": []}
+    dict_with_avgs = {"Institution": [], "Date": [], "Storage Granted (TB)": []}
     for inst in institutions:
         try:
             date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
             for date in date_grps.groups.keys():
                 monthly_sum = date_grps.get_group((date,))["Storage Granted (Gb)"].sum()
                 monthly_sum = int(round(monthly_sum / 1024.0))
-                df_with_avgs["Institution"].append(inst)
-                df_with_avgs["Storage Granted (TB)"].append(round(monthly_sum))
-                df_with_avgs["Date"].append(date)
+                dict_with_avgs["Institution"].append(inst)
+                dict_with_avgs["Storage Granted (TB)"].append(round(monthly_sum))
+                dict_with_avgs["Date"].append(date)
         except KeyError:
             continue
-    df_with_avgs = pd.DataFrame(df_with_avgs)
+    df_with_avgs = pd.DataFrame(dict_with_avgs)
     df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
+    return df_with_avgs
+
+
+def calc_corral_monthly_sums_with_peaks(df, institutions):
+    df_with_avgs = calc_corral_monthly_sums(df, institutions)
     df_with_peaks = add_peaks_to_corral_df(df_with_avgs, institutions)
     return df_with_peaks
 
@@ -300,9 +303,22 @@ def calc_corral_total(df_with_peaks):
     return total
 
 
+def calc_node_monthly_sums_no_machine(df, institution):
+    dict_with_avgs = {"Institution": [], "Date": [], "SU's Charged": []}
+    date_grps = df.groupby(["Date"])
+    for date, group in date_grps:
+        monthly_sum = group["SU's Charged"].sum()
+        dict_with_avgs["Institution"].append(institution)
+        dict_with_avgs["SU's Charged"].append(round(monthly_sum))
+        dict_with_avgs["Date"].append(date[0])
+    df_with_avgs = pd.DataFrame(dict_with_avgs)
+    df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
+    return df_with_avgs
+
+
 def calc_node_monthly_sums(df, institutions):
     inst_grps = df.groupby(["Institution"])
-    df_with_avgs = {"Institution": [], "Resource": [], "Date": [], "SU's Charged": []}
+    dict_with_avgs = {"Institution": [], "Resource": [], "Date": [], "SU's Charged": []}
     for inst in institutions:
         try:
             date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
@@ -312,15 +328,36 @@ def calc_node_monthly_sums(df, institutions):
                     monthly_sum = machine_grps.get_group((machine,))[
                         "SU's Charged"
                     ].sum()
-                    df_with_avgs["Institution"].append(inst)
-                    df_with_avgs["Resource"].append(machine)
-                    df_with_avgs["SU's Charged"].append(round(monthly_sum))
-                    df_with_avgs["Date"].append(date)
+                    dict_with_avgs["Institution"].append(inst)
+                    dict_with_avgs["Resource"].append(machine)
+                    dict_with_avgs["SU's Charged"].append(round(monthly_sum))
+                    dict_with_avgs["Date"].append(date)
         except KeyError:
             continue
-    df_with_avgs = pd.DataFrame(df_with_avgs)
+    df_with_avgs = pd.DataFrame(dict_with_avgs)
     df_with_avgs.sort_values(["Date", "Institution"], inplace=True)
     return df_with_avgs
+
+
+def get_fy_for_month(date: str) -> str:
+    datelist = date.split("-")
+    year = datelist[0]
+    month = datelist[1]
+    if month in FISCAL_YEAR_MONTHS["start_months"]:
+        fy = f"{year}-{int(year) + 1}"
+    elif month in FISCAL_YEAR_MONTHS["end_months"]:
+        fy = f"{int(year) - 1}-{year}"
+    return fy
+
+
+def get_first_or_last_month_in_fy(fy: str, which: str):
+    if which == "first":
+        month = FISCAL_YEAR_MONTHS["start_months"][0]
+        year = fy.split("-")[0]
+    elif which == "last":
+        month = FISCAL_YEAR_MONTHS["end_months"][-1]
+        year = fy.split("-")[1]
+    return f"{year}-{month}"
 
 
 def create_fy_options():
@@ -331,15 +368,8 @@ def create_fy_options():
         dates.append(get_date_from_filename(filename))
 
     fy_options = []
-    start_months = ["09", "10", "11", "12"]
-    end_months = ["01", "02", "03", "04", "05", "06", "07", "08"]
     for date in dates:
-        year = date.split("-")[0]
-        month = date.split("-")[1]
-        if month in start_months:
-            option = f"{year}-{int(year) + 1}"
-        elif month in end_months:
-            option = f"{int(year) - 1}-{year}"
+        option = get_fy_for_month(date)
         if option not in fy_options:
             fy_options.append(option)
     fy_options.sort()

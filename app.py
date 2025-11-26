@@ -25,6 +25,16 @@ FY_OPTIONS = create_fy_options()
 
 server = Flask(__name__)
 server.config["MAX_LOGIN_ATTEMPTS"] = 3
+
+if settings["DEBUG_MODE"]:
+    # Cache setup
+    config = {
+        "CACHE_TYPE": "FileSystemCache",
+        "CACHE_DEFAULT_TIMEOUT": 31536000,  # arbitrarily long cache time
+        "CACHE_DIR": "cache",
+    }
+    server.config.from_mapping(config)
+
 app = dash.Dash(
     __name__,
     server=server,
@@ -118,6 +128,14 @@ app.layout = html.Div(
                                                 html.A(
                                                     "Usage",
                                                     href="/usage",
+                                                    className="nav-link",
+                                                ),
+                                                className="nav-item",
+                                            ),
+                                            html.Li(
+                                                html.A(
+                                                    "Compare",
+                                                    href="/compare",
                                                     className="nav-link",
                                                 ),
                                                 className="nav-item",
@@ -238,6 +256,20 @@ def select_all_none_inst(selected, possible):
     [State("select_machine_dd", "options")],
 )
 def select_all_none_machine(selected, possible):
+    opts = []
+    if "All" in selected:
+        opts = possible
+    else:
+        opts = selected
+    return opts
+
+
+@app.callback(
+    Output("select-machine-dd", "value"),
+    Input("select-machine-dd", "value"),
+    [State("select-machine-dd", "options")],
+)
+def select_all_none_machine_2(selected, possible):
     opts = []
     if "All" in selected:
         opts = possible

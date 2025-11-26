@@ -89,9 +89,26 @@ html, body {
     color: var(--global-color-primary--xx-dark);
 }
 
-/* set font size for buttons */
+/* button styling */
 .button--medium {
     font-size: var(--global-font-size--medium);
+}
+
+.remove-range__button {
+    background-color: var(--global-color-danger--dark);
+    margin-left: 20px;
+    margin-top: 24px;
+    padding: 3px 6px 3px 6px;
+
+}
+
+.remove-range__div {
+    align-self: center;
+}
+
+.remove-range__icon {
+    color: var(--global-color-primary--xx-light);
+    font-size: var(--global-font-size--large);
 }
 
 /* filters */
@@ -135,12 +152,31 @@ html, body {
     font-size: 1.3rem;
 }
 
+.filter-error {
+    /* margin-top: 15px; */
+    padding-top: 15px;
+    color: var(--global-color-danger--dark);
+}
+
 .date-dropdown {
     flex: 1 1 0;
 }
 
 .date-dropdown--not-last {
     padding-right: 20px;
+}
+
+.dropdown-column {
+    flex: 1 1 0;
+}
+
+.dropdown-column--not-last {
+    padding-right: 20px;
+}
+
+.dropdown-column--container {
+    display: flex; 
+    width: 100%;
 }
 
 /* pills on multi-select component */

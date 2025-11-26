@@ -2,7 +2,7 @@ This application pulls user and system allocation/usage data from the Texas Adva
 
 The application serves a dashboard that displays overall trends to all visitors, and shows sensitive user data only to visitors who are logged in.
 
-The app is currently hosted [here](http://129.114.38.28).
+The app is currently hosted [here](https://utrc-dashboard.tacc.utexas.edu/).
 
 Installation Instructions
 ------------
@@ -16,7 +16,9 @@ Installation Instructions
 
 3. In the root directory, add a .env file with the values `SECRET_KEY` and `ACCOUNTS`. `SECRET_KEY` should be a securely generated string. `ACCOUNTS` should contain a single json dictionary with usernames as keys and passwords as values. See `.env.sample` for an example.
 
-4. Setup the Nginx web server configuration file to reverse proxy at port 8050.
+4. Open `config.py` and confirm the value for `settings["DEBUG_MODE"]`. If you are setting up a development environment this should be set to `True`. This will enable hot reloading and caching in your development environment. If you are setting up a production environment `settings["DEBUG_MODE"]` should be set to `None`.
+
+4. If you are setting up a production environment, set up the Nginx web server configuration file to reverse proxy at port 8050.
 
    ```
    # /etc/nginx/sites-available/dashboard.conf
@@ -33,19 +35,14 @@ Installation Instructions
    }
    ```
 
-5. Start the application.
+5. Start the application. For a production environment use:
 
    ```
    docker compose up --build -d
    ```
 
-Updating Instructions
-------------
-1. Make changes inside the app directory.
-
-2. While inside the main app directory, stop and restart the docker compose service.
+   For a development environment, use the `docker-compose-dev.yaml` file so you do not have to restart the container to see changes:
 
    ```
-   docker compose stop
-   docker compose up --build -d
+   docker compose -f docker-compose-dev.yaml up --build
    ```

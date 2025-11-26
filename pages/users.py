@@ -1,16 +1,17 @@
 import logging
-
 import dash
 import pandas as pd
 from dash import Input, Output, State, ctx, dcc, html
 from flask_login import current_user
-
-from config import settings
+from src.constants import REPORTS_PATH
 from src.data_functions import (
     create_fy_options,
     get_date_list,
     get_totals,
     select_df,
+    get_workbook_paths,
+    initialize_df,
+    append_date_to_worksheets,
 )
 from src.ui_functions import (
     make_bar_graph,
@@ -18,14 +19,58 @@ from src.ui_functions import (
     make_df_download_button,
     make_filters,
     make_summary_panel,
+    table_logged_out,
 )
-from src.startup import DATAFRAMES
+from config import settings
 
-LOGGING_LEVEL = settings["LOGGING_LEVEL"]
-logging.basicConfig(level=LOGGING_LEVEL)
+if settings["DEBUG_MODE"]:
+    from flask_caching import Cache
+
+logging.basicConfig(level=settings["LOGGING_LEVEL"])
 
 dash.register_page(__name__, path="/")
 app = dash.get_app()
+
+
+def merge_workbooks(WORKSHEETS):
+    logging.info(f"Processing workbooks for {', '.join(WORKSHEETS)}")
+    workbook_paths = get_workbook_paths(REPORTS_PATH)
+    for index, path in enumerate(workbook_paths):
+        workbook = initialize_df(path, WORKSHEETS)
+        filename = path.split("/")[-1]
+        logging.info(f"Processing {filename}")
+        workbook = append_date_to_worksheets(workbook, filename)
+
+        if index == 0:
+            dict_of_dfs = workbook
+        else:
+            for sheet in WORKSHEETS:
+                dict_of_dfs[sheet] = pd.concat([dict_of_dfs[sheet], workbook[sheet]])
+    logging.info(f"Done processing workbooks for {', '.join(WORKSHEETS)}")
+    return dict_of_dfs
+
+
+WORKSHEETS = [
+    "utrc_individual_user_hpc_usage",
+    "utrc_new_users",
+    "utrc_idle_users",
+    "utrc_suspended_users",
+    "utrc_active_allocations",
+    "utrc_current_allocations",
+    "utrc_new_allocation_requests",
+    "utrc_corral_usage",
+]
+
+# only use caching in debug mode, since caching only helps on startup and production is only restarted when there is new data
+if settings["DEBUG_MODE"]:
+    # set up cache
+    cache = Cache(app.server)
+    cache.init_app(app.server)
+    merge_workbooks = cache.memoize()(merge_workbooks)
+    DATAFRAMES = merge_workbooks(WORKSHEETS)
+else:
+    DATAFRAMES = merge_workbooks(WORKSHEETS)
+
 
 FY_OPTIONS = create_fy_options()
 
@@ -35,7 +80,6 @@ USER_DATAFRAMES = {
     "utrc_idle_users": DATAFRAMES["utrc_idle_users"],
     "utrc_suspended_users": DATAFRAMES["utrc_suspended_users"],
 }
-
 
 dd_options = [
     {
@@ -135,14 +179,7 @@ def update_figs(
     )
 
     if not current_user.is_authenticated:
-        table = html.Div(
-            [
-                "Please ",
-                dcc.Link("login", href="/login"),
-                " to view and download more data",
-            ],
-            className="login-note",
-        )
+        table = table_logged_out
     else:
         table = [
             make_data_table(df),

@@ -241,3 +241,77 @@ INSTITUTIONS_MENU = [
     "UTMDA",
     "UTSW",
 ]
+
+FISCAL_YEAR_MONTHS = {
+    "start_months": ["09", "10", "11", "12"],
+    "end_months": ["01", "02", "03", "04", "05", "06", "07", "08"],
+}
+
+MONTH_NAMES = {
+    "01": "Jan",
+    "02": "Feb",
+    "03": "Mar",
+    "04": "Apr",
+    "05": "May",
+    "06": "June",
+    "07": "July",
+    "08": "Aug",
+    "09": "Sept",
+    "10": "Oct",
+    "11": "Nov",
+    "12": "Dec",
+}
+
+DD_OPTIONS = {
+    "Users": [
+        {"label": "Active Users", "value": "utrc_individual_user_hpc_usage"},
+        {"label": "New Users", "value": "utrc_new_users"},
+        {"label": "Idle Users", "value": "utrc_idle_users"},
+        {"label": "Suspended Users", "value": "utrc_suspended_users"},
+    ],
+    "Allocations": [
+        {"label": "Active Allocations", "value": "utrc_active_allocations"},
+        {"label": "Current Allocations", "value": "utrc_current_allocations"},
+        {"label": "New Allocations", "value": "utrc_new_allocation_requests"},
+    ],
+    "Usage": [
+        {"label": "Active Allocations", "value": "utrc_sus_charged"},
+        {"label": "Corral Usage", "value": "utrc_corral_usage"},
+    ],
+}
+
+REPORT_INFO = {
+    "utrc_individual_user_hpc_usage": [
+        "Users per Month",
+        "Active Users",
+        "utrc_individual_user_hpc_usage",
+    ],
+    "utrc_new_users": ["Users per Month", "New Users", "utrc_new_users"],
+    "utrc_idle_users": ["Users per Month", "Idle Users", "utrc_idle_users"],
+    "utrc_suspended_users": [
+        "Users per Month",
+        "Suspended Users",
+        "utrc_suspended_users",
+    ],
+    "utrc_active_allocations": [
+        "Allocations per Month",
+        "Active Allocations",
+        "utrc_active_allocations",
+    ],
+    "utrc_current_allocations": [
+        "Allocations per Month",
+        "Current Allocations",
+        "utrc_current_allocations",
+    ],
+    "utrc_new_allocation_requests": [
+        "Allocations per Month",
+        "New Allocations",
+        "utrc_new_allocation_requests",
+    ],
+    "utrc_sus_charged": [
+        "SU's Charged per Month",
+        "SU's Charged",
+        "utrc_active_allocations",
+    ],
+    "utrc_corral_usage": ["Corral Usage", "Storage Granted (TB)", "utrc_corral_usage"],
+}
