@@ -11,7 +11,7 @@ from src.data_functions import (
     select_df,
     get_workbook_paths,
     initialize_df,
-    append_date_to_worksheets,
+    update_worksheet_columns
 )
 from src.ui_functions import (
     make_bar_graph,
@@ -39,7 +39,7 @@ def merge_workbooks(WORKSHEETS):
         workbook = initialize_df(path, WORKSHEETS)
         filename = path.split("/")[-1]
         logging.info(f"Processing {filename}")
-        workbook = append_date_to_worksheets(workbook, filename)
+        workbook = update_worksheet_columns(workbook, filename)
 
         if index == 0:
             dict_of_dfs = workbook
