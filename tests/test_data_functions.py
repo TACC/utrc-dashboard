@@ -18,7 +18,7 @@ from src.data_functions import (
 def test_create_fy_options():
     # This will break whenever a new fiscal year is added to the data
     t1 = create_fy_options()
-    assert t1 == ["22-23", "23-24", "24-25"]
+    assert t1 == ["22-23", "23-24", "24-25", "25-26"]
 
 
 def test_get_date_list():
@@ -378,7 +378,7 @@ def test_calc_node_monthly_sums():
 def test_calc_corral_monthly_sums_with_peaks():
     d1 = {
         "Institution": ["UTAus", "UTAus", "UTAus", "UTAus", "UTPB", "UTRGV", "UTD"],
-        "Storage Granted (Gb)": [x * 1000 for x in range(7)],
+        "Storage Granted (TB)": [x for x in range(7)],
         "Last Name": ["Smith", "Doe", "Garcia", "Nguyen", "Brown", "Lee", "Johnson"],
         "First Name": ["John", "Jill", "Jose", "James", "Joe", "Jade", "Janice"],
         "Name": [

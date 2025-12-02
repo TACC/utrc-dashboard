@@ -94,11 +94,30 @@ def check_date_order(start_date: str, end_date: str) -> bool:
         return False
 
 
-def append_date_to_worksheets(workbook, filename):
+def update_worksheet_columns(workbook, filename):
     for worksheet in workbook:
         workbook[worksheet]["Date"] = get_date_from_filename(filename)
+        if worksheet == "utrc_corral_usage":
+            workbook[worksheet] = normalize_storage_granted(workbook[worksheet])
     return workbook
 
+
+def normalize_storage_granted(df):
+
+    def update_units(row):
+        if row["Storage Unit"].upper() == "GB":
+            return row["Storage Granted"] / 1024.0
+        elif row["Storage Unit"].upper() == "TB":
+            return row["Storage Granted"]
+
+    new_df = df.copy()
+
+    if "Storage Granted (Gb)" in df.columns:
+        new_df["Storage Granted (TB)"] = new_df["Storage Granted (Gb)"] / 1024.0
+    elif "Storage Granted" in new_df.columns:
+        new_df["Storage Granted (TB)"] = new_df.apply(update_units, axis=1)
+
+    return new_df
 
 def get_date_from_filename(filename, prefix="utrc_report"):
     pattern = re.compile("{}_(.*)_to_(.*).xlsx".format(prefix))
@@ -267,8 +286,7 @@ def calc_corral_monthly_sums(df, institutions):
         try:
             date_grps = inst_grps.get_group((inst,)).groupby(["Date"])
             for date in date_grps.groups.keys():
-                monthly_sum = date_grps.get_group((date,))["Storage Granted (Gb)"].sum()
-                monthly_sum = int(round(monthly_sum / 1024.0))
+                monthly_sum = date_grps.get_group((date,))["Storage Granted (TB)"].sum()
                 dict_with_avgs["Institution"].append(inst)
                 dict_with_avgs["Storage Granted (TB)"].append(round(monthly_sum))
                 dict_with_avgs["Date"].append(date)

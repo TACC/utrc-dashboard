@@ -107,6 +107,8 @@ COLUMN_HEADERS = {
     "end_date": "End Date",
     "status": "Status",
     "storage_granted_gb": "Storage Granted (Gb)",
+    "storage_granted": "Storage Granted",
+    "storage_unit": "Storage Unit",
     "total_granted": "Total Granted",
     "total_refunded": "Total Refunded",
     "total_used": "Total Used",
