@@ -117,7 +117,7 @@ layout = html.Div(
 
 # ADD INTERACTIVITY THROUGH CALLBACKS
 @app.callback(
-    Output("download-users-df", "data"),
+    Output("download-users-df", "data", allow_duplicate=True),
     Input("btn-download", "n_clicks"),
     State("dropdown", "value"),
     State("select_institutions_dd", "value"),
@@ -150,11 +150,11 @@ def func(
 
 
 @app.callback(
-    Output("table", "children"),
-    Output("bargraph", "children"),
-    Output("active_users", "children"),
-    Output("idle_users", "children"),
-    Output("total_users", "children"),
+    Output("table", "children", allow_duplicate=True),
+    Output("bargraph", "children", allow_duplicate=True),
+    Output("active_users", "children", allow_duplicate=True),
+    Output("idle_users", "children", allow_duplicate=True),
+    Output("total_users", "children", allow_duplicate=True),
     Input("dropdown", "value"),
     Input("select_institutions_dd", "value"),
     Input("select_machine_dd", "value"),

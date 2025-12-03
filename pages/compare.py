@@ -179,6 +179,7 @@ def add_date_range(n_clicks, start, end):
     Input("select-machine-dd", "value"),
     Input({"type": "start-date-dd", "index": ALL}, "value"),
     Input({"type": "end-date-dd", "index": ALL}, "value"),
+    prevent_initial_call=True
 )
 def update_figs(
     report_dd,
